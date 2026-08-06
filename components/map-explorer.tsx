@@ -5,27 +5,42 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { BadgeCheck, Bath, BedDouble, Maximize, SlidersHorizontal, X } from 'lucide-react'
 
+import { AdvancedFilters } from '@/components/filters/advanced-filters'
 import { MapCanvas } from '@/components/map/map-canvas'
 import { Button } from '@/components/ui/button'
+import {
+  applyFilters,
+  defaultFilters,
+  filterChips,
+  priceBounds,
+  transactions,
+  type Filters,
+  type Transaction,
+} from '@/lib/filters'
 import { formatPrice, listings, type Listing } from '@/lib/properties'
 import { cn } from '@/lib/utils'
 
-const statuses = ['Tout', 'À vendre', 'À louer'] as const
 const types = ['Tout', 'Appartement', 'Villa', 'Maison', 'Terrain', 'Bureau'] as const
 
 export function MapExplorer() {
-  const [status, setStatus] = useState<(typeof statuses)[number]>('Tout')
-  const [type, setType] = useState<(typeof types)[number]>('Tout')
+  const [filters, setFilters] = useState<Filters>(() => defaultFilters('Tout'))
   const [active, setActive] = useState<string | null>(null)
   const [showList, setShowList] = useState(false)
 
-  const filtered = useMemo(
-    () =>
-      listings.filter(
-        (l) => (status === 'Tout' || l.status === status) && (type === 'Tout' || l.type === type),
-      ),
-    [status, type],
-  )
+  const filtered = useMemo(() => applyFilters(listings, filters), [filters])
+  const chips = filterChips(filters)
+
+  const setTransaction = (t: Transaction) =>
+    setFilters((f) => {
+      const b = priceBounds(t)
+      return { ...f, transaction: t, priceMin: b.min, priceMax: b.max }
+    })
+
+  const setType = (t: (typeof types)[number]) =>
+    setFilters((f) => ({
+      ...f,
+      types: t === 'Tout' ? [] : f.types.includes(t) ? f.types.filter((x) => x !== t) : [...f.types, t],
+    }))
 
   return (
     <div className="flex flex-1 flex-col">
@@ -33,15 +48,17 @@ export function MapExplorer() {
       <div className="border-b border-border bg-card">
         <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center gap-3 px-4 py-4 md:px-6">
           <div className="flex items-center gap-1 rounded-full bg-secondary p-1" role="group" aria-label="Transaction">
-            {statuses.map((s) => (
+            {transactions.map((s) => (
               <button
                 key={s}
                 type="button"
-                onClick={() => setStatus(s)}
-                aria-pressed={status === s}
+                onClick={() => setTransaction(s)}
+                aria-pressed={filters.transaction === s}
                 className={cn(
                   'rounded-full px-3.5 py-1.5 text-sm transition-colors duration-200',
-                  status === s ? 'bg-card font-medium text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                  filters.transaction === s
+                    ? 'bg-card font-medium text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
                 )}
               >
                 {s}
@@ -50,26 +67,31 @@ export function MapExplorer() {
           </div>
 
           <div className="hide-scrollbar flex flex-1 items-center gap-2 overflow-x-auto">
-            {types.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setType(t)}
-                aria-pressed={type === t}
-                className={cn(
-                  'shrink-0 rounded-full border px-3.5 py-1.5 text-sm transition-colors duration-200',
-                  type === t
-                    ? 'border-foreground bg-foreground text-background'
-                    : 'border-border text-muted-foreground hover:text-foreground',
-                )}
-              >
-                {t}
-              </button>
-            ))}
+            {types.map((t) => {
+              const on = t === 'Tout' ? filters.types.length === 0 : filters.types.includes(t)
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setType(t)}
+                  aria-pressed={on}
+                  className={cn(
+                    'shrink-0 rounded-full border px-3.5 py-1.5 text-sm transition-colors duration-200',
+                    on
+                      ? 'border-foreground bg-foreground text-background'
+                      : 'border-border text-muted-foreground hover:text-foreground',
+                  )}
+                >
+                  {t}
+                </button>
+              )
+            })}
           </div>
 
-          <p className="ml-auto hidden shrink-0 text-sm text-muted-foreground lg:block">
-            {filtered.length} bien{filtered.length > 1 ? 's' : ''} sur la carte
+          <AdvancedFilters value={filters} onChange={setFilters} className="ml-auto" />
+
+          <p className="hidden shrink-0 text-sm text-muted-foreground lg:block">
+            {filtered.length} bien{filtered.length > 1 ? 's' : ''}
           </p>
 
           <Button
@@ -81,6 +103,35 @@ export function MapExplorer() {
             {showList ? 'Voir la carte' : `Liste (${filtered.length})`}
           </Button>
         </div>
+
+        {chips.length > 0 && (
+          <div className="mx-auto w-full max-w-[1600px] px-4 pb-4 md:px-6">
+            <ul className="hide-scrollbar flex items-center gap-2 overflow-x-auto">
+              {chips.map((chip) => (
+                <li key={chip.key}>
+                  <button
+                    type="button"
+                    onClick={() => setFilters(chip.next)}
+                    className="flex shrink-0 items-center gap-1.5 rounded-full bg-secondary py-1.5 pr-2.5 pl-3 text-xs font-medium text-foreground transition-colors duration-200 hover:bg-secondary/70"
+                  >
+                    {chip.label}
+                    <X className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                    <span className="sr-only">Retirer ce filtre</span>
+                  </button>
+                </li>
+              ))}
+              <li>
+                <button
+                  type="button"
+                  onClick={() => setFilters(defaultFilters(filters.transaction))}
+                  className="shrink-0 px-2 text-xs font-medium text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
+                >
+                  Tout effacer
+                </button>
+              </li>
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* Split view */}
@@ -179,10 +230,7 @@ export function MapExplorer() {
               <p className="text-sm text-muted-foreground">Aucun bien ne correspond à ces filtres.</p>
               <Button
                 variant="outline"
-                onClick={() => {
-                  setStatus('Tout')
-                  setType('Tout')
-                }}
+                onClick={() => setFilters(defaultFilters('Tout'))}
                 className="mt-4 rounded-full border-border"
               >
                 Réinitialiser

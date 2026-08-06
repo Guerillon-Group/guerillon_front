@@ -1,9 +1,11 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, BadgeCheck, FileCheck2, Handshake, MapPinned } from 'lucide-react'
+import { ArrowRight, BadgeCheck, FileCheck2, Handshake, ShieldCheck } from 'lucide-react'
 
-import { ListingCard } from '@/components/listing-card'
-import { SearchBar } from '@/components/search-bar'
+import { BrowseTabs } from '@/components/home/browse-tabs'
+import { CompactCard } from '@/components/home/compact-card'
+import { HeroSearch } from '@/components/home/hero-search'
+import { Reveal } from '@/components/reveal'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
 import { Button } from '@/components/ui/button'
@@ -14,6 +16,13 @@ const collections = [
   { name: 'Villas d’architecte', count: 18, image: '/images/villa-piscine.png' },
   { name: 'Terrains titrés', count: 76, image: '/images/terrain-bukavu.png' },
   { name: 'Bureaux Gombe', count: 24, image: '/images/bureau-gombe.png' },
+]
+
+const stats = [
+  { value: '1 240+', label: 'Annonces vérifiées' },
+  { value: '86', label: 'Agents certifiés' },
+  { value: '3 villes', label: 'Goma · Bukavu · Kinshasa' },
+  { value: '48 h', label: 'Délai moyen de réponse' },
 ]
 
 const trust = [
@@ -35,88 +44,92 @@ const trust = [
 ]
 
 export default function HomePage() {
-  const featured = listings.slice(0, 3)
-  const rest = listings.slice(3)
-
   return (
     <div className="flex min-h-dvh flex-col">
-      <SiteHeader floating />
+      <div className="border-b border-hairline bg-secondary">
+        <div className="mx-auto flex w-full max-w-[1280px] items-center justify-center gap-2.5 px-4 py-2.5 md:px-6">
+          <span className="live-dot size-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
+          <Link
+            href="/publier"
+            className="text-center text-sm font-medium text-foreground underline underline-offset-4 transition-colors hover:text-accent"
+          >
+            Publiez votre bien gratuitement et recevez vos premières demandes sous 48 h
+          </Link>
+        </div>
+      </div>
+
+      <SiteHeader />
 
       <main>
-        {/* Hero */}
-        <section className="mx-auto w-full max-w-[1280px] px-4 pt-10 pb-6 md:px-6 md:pt-16">
-          <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
-            <div>
-              <p className="text-xs font-semibold tracking-[0.05em] text-muted-foreground uppercase">
-                Goma · Bukavu · Kinshasa
-              </p>
-              <h1 className="mt-4 font-display text-4xl leading-[1.08] font-bold tracking-tight text-balance text-foreground md:text-5xl lg:text-[56px]">
-                L&apos;immobilier congolais, enfin lisible.
-              </h1>
-              <p className="mt-5 max-w-lg text-base leading-relaxed text-muted-foreground">
-                Des annonces vérifiées une par une, des titres confrontés au cadastre et des agents que vous pouvez
-                appeler. Trouvez le bien qui vous convient sans zone d&apos;ombre.
-              </p>
-
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Button
-                  nativeButton={false}
-                  render={<Link href="/carte" />}
-                  className="h-12 gap-2 rounded-full px-6"
-                >
-                  Explorer la carte
-                  <MapPinned className="size-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  nativeButton={false}
-                  render={<Link href="/publier" />}
-                  className="h-12 gap-2 rounded-full border-border px-6"
-                >
-                  Publier une annonce
-                  <ArrowRight className="size-4" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl sm:aspect-[4/3] lg:aspect-[4/4.4]">
-              <Image
-                src="/images/villa-piscine.png"
-                alt="Villa contemporaine avec piscine à débordement surplombant un paysage verdoyant"
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 45vw"
-                className="object-cover"
-              />
-              <div className="glass-panel absolute inset-x-4 bottom-4 rounded-xl p-4">
-                <div className="flex items-end justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-semibold tracking-[0.05em] text-muted-foreground uppercase">
-                      Exclusivité Katindo
-                    </p>
-                    <p className="mt-1 truncate text-sm font-semibold text-foreground">
-                      Villa d&apos;architecte avec piscine
-                    </p>
-                  </div>
-                  <p className="shrink-0 font-display text-lg font-semibold tracking-tight text-foreground">385 k$</p>
-                </div>
-              </div>
-            </div>
+        {/* Hero : recherche centrée */}
+        <section className="mx-auto w-full max-w-[1280px] px-4 pt-8 md:px-6 md:pt-12">
+          <div className="mx-auto max-w-[980px] text-center">
+            <p className="animate-in fill-mode-backwards inline-flex items-center gap-2 rounded-full border border-input px-3 py-1 text-xs font-medium text-muted-foreground duration-500 fade-in slide-in-from-bottom-2">
+              <ShieldCheck className="size-3.5 text-accent" aria-hidden="true" />
+              412 titres fonciers contrôlés ce mois-ci
+            </p>
+            <h1
+              style={{ animationDelay: '90ms' }}
+              className="animate-in fill-mode-backwards mt-5 font-display text-3xl leading-[1.1] font-bold tracking-tight text-balance text-foreground duration-700 fade-in slide-in-from-bottom-4 md:text-[44px]"
+            >
+              L&apos;immobilier congolais, enfin lisible.
+            </h1>
+            <p
+              style={{ animationDelay: '180ms' }}
+              className="animate-in fill-mode-backwards mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-muted-foreground duration-700 fade-in slide-in-from-bottom-4"
+            >
+              Annonces vérifiées une par une, titres confrontés au cadastre, agents que vous pouvez appeler.
+            </p>
           </div>
 
-          <div className="mt-10 md:mt-12">
-            <SearchBar />
+          <div
+            style={{ animationDelay: '280ms' }}
+            className="animate-in fill-mode-backwards mx-auto mt-7 max-w-[1060px] duration-700 fade-in slide-in-from-bottom-6"
+          >
+            <HeroSearch />
           </div>
+
+          <dl
+            style={{ animationDelay: '400ms' }}
+            className="animate-in fill-mode-backwards mx-auto mt-8 flex max-w-[860px] flex-wrap items-center justify-center gap-x-10 gap-y-4 duration-700 fade-in"
+          >
+            {stats.map((stat) => (
+              <div key={stat.label} className="text-center">
+                <dt className="sr-only">{stat.label}</dt>
+                <dd className="font-display text-2xl font-bold tracking-tight text-foreground">{stat.value}</dd>
+                <p className="mt-0.5 text-xs text-muted-foreground">{stat.label}</p>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        {/* Onglets + rail principal */}
+        <BrowseTabs />
+
+        {/* Reprendre la recherche */}
+        <section className="mx-auto w-full max-w-[1280px] px-4 pt-14 md:px-6 md:pt-20">
+          <Reveal>
+            <h2 className="font-display text-2xl leading-tight font-bold tracking-tight text-foreground md:text-[30px]">
+              Reprendre là où vous en étiez
+            </h2>
+          </Reveal>
+          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {listings.map((listing, i) => (
+              <Reveal key={listing.slug} as="li" delay={Math.min(i, 5) * 70}>
+                <CompactCard listing={listing} />
+              </Reveal>
+            ))}
+          </ul>
         </section>
 
         {/* Collections */}
-        <section className="mx-auto w-full max-w-[1280px] px-4 pt-16 md:px-6 md:pt-24">
+        <section className="mx-auto w-full max-w-[1280px] px-4 pt-14 md:px-6 md:pt-20">
           <div className="flex items-end justify-between gap-6">
             <div>
-              <h2 className="font-display text-2xl leading-tight font-semibold tracking-tight text-foreground md:text-[32px]">
+              <h2 className="font-display text-2xl leading-tight font-bold tracking-tight text-foreground md:text-[30px]">
                 Immenses collections
               </h2>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-1.5 text-sm text-muted-foreground">
                 Des sélections construites par nos agents, pas par un algorithme.
               </p>
             </div>
@@ -130,11 +143,16 @@ export default function HomePage() {
           </div>
 
           <ul className="hide-scrollbar -mx-4 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0">
-            {collections.map((collection) => (
-              <li key={collection.name} className="w-[240px] shrink-0 snap-start md:w-auto">
+            {collections.map((collection, i) => (
+              <Reveal
+                key={collection.name}
+                as="li"
+                delay={i * 80}
+                className="w-[240px] shrink-0 snap-start md:w-auto"
+              >
                 <Link
                   href="/carte"
-                  className="group block overflow-hidden rounded-xl border border-border bg-card transition-transform duration-300 hover:-translate-y-1"
+                  className="group block overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:shadow-foreground/10"
                 >
                   <div className="relative aspect-[5/4] overflow-hidden">
                     <Image
@@ -142,52 +160,33 @@ export default function HomePage() {
                       alt={collection.name}
                       fill
                       sizes="(max-width: 768px) 60vw, 22vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
                     />
+                    <span className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-primary/45 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                   </div>
                   <div className="flex items-center justify-between gap-3 p-4">
-                    <span className="truncate text-sm font-medium text-foreground">{collection.name}</span>
+                    <span className="truncate text-sm font-medium text-foreground transition-colors duration-200 group-hover:text-accent">
+                      {collection.name}
+                    </span>
                     <span className="shrink-0 text-xs text-muted-foreground">{collection.count}</span>
                   </div>
                 </Link>
-              </li>
+              </Reveal>
             ))}
           </ul>
         </section>
 
-        {/* Featured listings */}
-        <section className="mx-auto w-full max-w-[1280px] px-4 pt-16 md:px-6 md:pt-24">
-          <div>
-            <h2 className="font-display text-2xl leading-tight font-semibold tracking-tight text-foreground md:text-[32px]">
-              Sélection de la semaine
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">Six biens visités et documentés par nos équipes.</p>
-          </div>
-
-          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.map((listing, i) => (
-              <ListingCard key={listing.slug} listing={listing} priority={i === 0} />
-            ))}
-          </div>
-
-          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {rest.map((listing) => (
-              <ListingCard key={listing.slug} listing={listing} />
-            ))}
-          </div>
-        </section>
-
         {/* Trust */}
-        <section className="mx-auto w-full max-w-[1280px] px-4 pt-16 md:px-6 md:pt-24">
-          <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        <section className="mx-auto w-full max-w-[1280px] px-4 pt-14 md:px-6 md:pt-20">
+          <Reveal className="overflow-hidden rounded-2xl border border-border bg-card">
             <div className="grid lg:grid-cols-[1fr_1.1fr]">
-              <div className="relative min-h-[240px]">
+              <div className="group relative min-h-[240px] overflow-hidden">
                 <Image
                   src="/images/kinshasa-skyline.png"
                   alt="Vue aérienne de Kinshasa au crépuscule avec le fleuve Congo"
                   fill
                   sizes="(max-width: 1024px) 100vw, 45vw"
-                  className="object-cover"
+                  className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                 />
               </div>
 
@@ -196,8 +195,8 @@ export default function HomePage() {
                   Acheter sans mauvaise surprise
                 </h2>
                 <ul className="mt-8 flex flex-col gap-7">
-                  {trust.map((item) => (
-                    <li key={item.title} className="flex gap-4">
+                  {trust.map((item, i) => (
+                    <Reveal as="li" key={item.title} delay={120 + i * 110} className="flex gap-4">
                       <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-secondary text-foreground">
                         <item.icon className="size-5" aria-hidden="true" />
                       </span>
@@ -205,17 +204,17 @@ export default function HomePage() {
                         <h3 className="text-[15px] font-semibold text-foreground">{item.title}</h3>
                         <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
                       </div>
-                    </li>
+                    </Reveal>
                   ))}
                 </ul>
               </div>
             </div>
-          </div>
+          </Reveal>
         </section>
 
         {/* CTA */}
         <section className="mx-auto w-full max-w-[1280px] px-4 pt-16 md:px-6 md:pt-24">
-          <div className="flex flex-col items-start gap-6 rounded-2xl bg-primary p-8 text-primary-foreground md:flex-row md:items-center md:justify-between md:p-12">
+          <Reveal className="flex flex-col items-start gap-6 rounded-2xl bg-primary p-8 text-primary-foreground md:flex-row md:items-center md:justify-between md:p-12">
             <div className="max-w-xl">
               <h2 className="font-display text-2xl leading-tight font-semibold tracking-tight text-balance md:text-[32px]">
                 Vous avez un bien à vendre ou à louer ?
@@ -228,12 +227,12 @@ export default function HomePage() {
               variant="secondary"
               nativeButton={false}
               render={<Link href="/publier" />}
-              className="h-12 shrink-0 gap-2 rounded-full px-6"
+              className="group h-12 shrink-0 gap-2 rounded-full px-6"
             >
               Commencer
-              <ArrowRight className="size-4" />
+              <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Button>
-          </div>
+          </Reveal>
         </section>
       </main>
 

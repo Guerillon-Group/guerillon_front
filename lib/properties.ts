@@ -17,8 +17,16 @@ export type Listing = {
   lat: number
   lng: number
   verified: boolean
+  /** année de construction ou de dernière rénovation */
+  year: number
+  rating: number
+  reviews: number
   description: string
   features: string[]
+  /** ids from `amenityCatalog` in lib/filters.ts */
+  amenities: string[]
+  /** ids from `accessCatalog` in lib/filters.ts */
+  access: string[]
   agent: {
     name: string
     role: string
@@ -53,6 +61,9 @@ export const listings: Listing[] = [
     lat: -1.6712,
     lng: 29.2201,
     verified: true,
+    year: 2024,
+    rating: 4.9,
+    reviews: 47,
     description:
       "Au troisième étage d'une résidence récente de Himbi, cet appartement traversant capte la lumière du matin sur le lac Kivu et la silhouette du Nyiragongo au coucher du soleil. Les volumes ont été redessinés en 2024 : cuisine ouverte sur un séjour de 42 m², parquet en chêne clair, menuiseries aluminium noir et une terrasse abritée de 14 m² orientée ouest.",
     features: [
@@ -63,6 +74,8 @@ export const listings: Listing[] = [
       'Gardiennage 24/7',
       'Cuisine équipée',
     ],
+    amenities: ['generateur', 'eau', 'fibre', 'parking', 'gardiennage', 'clim', 'terrasse'],
+    access: ['portes-larges'],
     agent: {
       name: 'Sarah Mukendi',
       role: 'Agent certifié',
@@ -89,6 +102,9 @@ export const listings: Listing[] = [
     lat: -1.6598,
     lng: 29.2359,
     verified: true,
+    year: 2021,
+    rating: 5.0,
+    reviews: 19,
     description:
       "Une villa contemporaine posée sur un terrain arboré de 1 200 m², dessinée autour d'un patio central et d'une piscine à débordement. Les pièces de vie s'ouvrent entièrement sur le jardin par des baies coulissantes toute hauteur.",
     features: [
@@ -99,6 +115,8 @@ export const listings: Listing[] = [
       'Garage double',
       'Système de sécurité intégré',
     ],
+    amenities: ['piscine', 'solaire', 'jardin', 'parking', 'gardiennage', 'eau', 'clim', 'terrasse'],
+    access: ['plain-pied', 'parking-adapte', 'portes-larges', 'douche-plain-pied'],
     agent: {
       name: 'Sarah Mukendi',
       role: 'Agent certifié',
@@ -125,9 +143,14 @@ export const listings: Listing[] = [
     lat: -1.6835,
     lng: 29.2093,
     verified: true,
+    year: 2023,
+    rating: 4.8,
+    reviews: 31,
     description:
       "Accès direct au lac Kivu depuis une large terrasse en bois. La maison, rénovée en 2023, mêle murs enduits à la chaux et bardage bois pour un intérieur clair et frais toute l'année.",
     features: ['Ponton privé', 'Terrasse 60 m²', 'Citerne 10 000 L', 'Cuisine d’été', 'Panneaux solaires'],
+    amenities: ['eau', 'solaire', 'terrasse', 'jardin', 'parking'],
+    access: ['plain-pied', 'portes-larges'],
     agent: {
       name: 'Sarah Mukendi',
       role: 'Agent certifié',
@@ -155,9 +178,14 @@ export const listings: Listing[] = [
     lat: -4.3082,
     lng: 15.2988,
     verified: true,
+    year: 2022,
+    rating: 4.7,
+    reviews: 58,
     description:
       "Dans une rue calme de la Gombe, ce duplex meublé conviendra aux familles d'expatriés : quatre chambres, un bureau fermé et un petit jardin clos à l'arrière.",
     features: ['Entièrement meublé', 'Bureau fermé', 'Générateur automatique', 'Jardin clos', 'Climatisation'],
+    amenities: ['meuble', 'generateur', 'jardin', 'clim', 'parking', 'gardiennage'],
+    access: ['parking-adapte'],
     agent: {
       name: 'Sarah Mukendi',
       role: 'Agent certifié',
@@ -184,9 +212,14 @@ export const listings: Listing[] = [
     lat: -2.5031,
     lng: 28.8512,
     verified: true,
+    year: 2025,
+    rating: 4.6,
+    reviews: 8,
     description:
       "Parcelle de 900 m² en légère pente, orientée sud-ouest, avec une vue dégagée sur la baie. Titre foncier disponible et bornage effectué.",
     features: ['Titre foncier vérifié', 'Bornage réalisé', 'Eau et électricité en limite', 'Accès goudronné'],
+    amenities: ['eau'],
+    access: ['plain-pied'],
     agent: {
       name: 'Sarah Mukendi',
       role: 'Agent certifié',
@@ -214,9 +247,14 @@ export const listings: Listing[] = [
     lat: -4.3201,
     lng: 15.3105,
     verified: false,
+    year: 2023,
+    rating: 4.5,
+    reviews: 12,
     description:
       "Plateau libre de 320 m² au quatrième étage, livré aménagé : faux plafonds acoustiques, câblage réseau et deux blocs sanitaires. Ascenseur et parking en sous-sol.",
     features: ['Ascenseur', 'Parking sous-sol', 'Fibre dédiée', 'Groupe électrogène immeuble', 'Réception partagée'],
+    amenities: ['ascenseur', 'parking', 'fibre', 'generateur', 'clim'],
+    access: ['ascenseur-acces', 'plain-pied', 'parking-adapte', 'portes-larges'],
     agent: {
       name: 'Sarah Mukendi',
       role: 'Agent certifié',
@@ -234,6 +272,24 @@ export function getListing(slug: string) {
 export function formatPrice(listing: Pick<Listing, 'price' | 'period'>) {
   const value = new Intl.NumberFormat('fr-FR').format(listing.price)
   return listing.period ? `${value} $ /${listing.period}` : `${value} $`
+}
+
+/** Prix principal + repère secondaire, à la manière « $/jour · total » des plateformes de location. */
+export function priceParts(listing: Pick<Listing, 'price' | 'period' | 'surface'>) {
+  const nf = new Intl.NumberFormat('fr-FR')
+  if (listing.period) {
+    return {
+      main: `${nf.format(listing.price)} $`,
+      unit: '/mois',
+      hint: `${nf.format(listing.price * 12)} $ par an`,
+    }
+  }
+  const perSquare = listing.surface > 0 ? Math.round(listing.price / listing.surface) : 0
+  return {
+    main: `${nf.format(listing.price)} $`,
+    unit: '',
+    hint: perSquare > 0 ? `${nf.format(perSquare)} $ le m²` : '',
+  }
 }
 
 export function shortPrice(price: number) {
