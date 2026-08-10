@@ -10,23 +10,22 @@ export const metadata: Metadata = {
   title: 'Real Estate — Immobilier premium en RDC',
   description:
     "Trouvez, visitez et publiez des biens d'exception à Goma, Bukavu et Kinshasa. Annonces vérifiées, agents certifiés, transactions sereines.",
-  generator: 'v0.app',
   icons: {
     icon: [
       {
-        url: '/icon-light-32x32.png',
+        url: '/IMG_6123.png',
         media: '(prefers-color-scheme: light)',
       },
       {
-        url: '/icon-dark-32x32.png',
+        url: '/IMG_6123.png',
         media: '(prefers-color-scheme: dark)',
       },
       {
-        url: '/icon.svg',
+        url: '/logo-mbiyo.svg',
         type: 'image/svg+xml',
       },
     ],
-    apple: '/apple-icon.png',
+    apple: '/IMG_6123.png',
   },
 }
 

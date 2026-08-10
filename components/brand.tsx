@@ -24,11 +24,11 @@ export function Brand({
         )}
       >
         <Image
-          src="/logo-mbiyo.svg"
+          src="/IMG_6123.png"
           alt="MBIYO Real Estate Logo"
           width={36}
           height={36}
-          className="size-full object-contain"
+          className="size-full bg-red-500 object-contain"
           priority
         />
       </div>
