@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 const nav = [
   { href: '/', label: 'Acheter' },
   { href: '/carte', label: 'Explorer la carte' },
+  { href: '/messages', label: 'Messages', badge: '1' },
   { href: '/tableau-de-bord', label: 'Tableau de bord' },
 ]
 
@@ -52,11 +53,21 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'rounded-full px-3 py-2 text-sm transition-colors duration-200',
-                  active ? 'bg-secondary font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
+                  'relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-95',
+                  active
+                    ? 'bg-secondary text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground',
                 )}
               >
-                {item.label}
+                <span>{item.label}</span>
+                {item.badge && (
+                  <span className="relative flex size-4 items-center justify-center">
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/60 opacity-75" />
+                    <span className="relative flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-extrabold text-primary-foreground shadow-xs">
+                      {item.badge}
+                    </span>
+                  </span>
+                )}
               </Link>
             )
           })}
