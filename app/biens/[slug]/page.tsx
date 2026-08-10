@@ -117,7 +117,11 @@ export default async function ListingPage({ params }: { params: Promise<{ slug: 
   const specs = [
     { icon: BedDouble, label: 'Chambres', value: listing.beds > 0 ? String(listing.beds) : '—' },
     { icon: Bath, label: 'Salles de bain', value: listing.baths > 0 ? String(listing.baths) : '—' },
-    { icon: Maximize, label: 'Surface', value: `${listing.surface} m²` },
+    { icon: Maximize, label: 'Surface habitable', value: `${listing.surface} m²` },
+    ...(listing.landArea ? [{ icon: Maximize, label: 'Terrain', value: `${listing.landArea} m²` }] : []),
+    ...(listing.year || listing.constructionYear
+      ? [{ icon: Calendar, label: 'Année', value: String(listing.year || listing.constructionYear) }]
+      : []),
     { icon: MapPin, label: 'Quartier', value: listing.district },
   ]
 
@@ -275,7 +279,11 @@ export default async function ListingPage({ params }: { params: Promise<{ slug: 
                 <MapCanvas
                   listings={[listing]}
                   activeSlug={listing.slug}
-                  center={[listing.lat, listing.lng]}
+                  center={
+                    listing.lat !== undefined && listing.lng !== undefined
+                      ? [listing.lat, listing.lng]
+                      : undefined
+                  }
                   zoom={14}
                   className="size-full"
                 />
