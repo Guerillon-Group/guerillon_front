@@ -9,10 +9,17 @@ import type { Listing } from '@/lib/properties'
 
 const options: { type: Listing['type']; icon: typeof Home; blurb: string }[] = [
   { type: 'Appartement', icon: Building2, blurb: 'Étage dans une résidence' },
-  { type: 'Villa', icon: Trees, blurb: 'Maison avec jardin ou piscine' },
   { type: 'Maison', icon: Home, blurb: 'Habitation individuelle' },
-  { type: 'Terrain', icon: Mountain, blurb: 'Parcelle nue ou viabilisée' },
-  { type: 'Bureau', icon: Landmark, blurb: 'Local professionnel' },
+  { type: 'Villa', icon: Trees, blurb: 'Maison haut de gamme avec jardin' },
+  { type: 'Studio', icon: Home, blurb: 'Logement une pièce optimisé' },
+  { type: 'Terrain', icon: Mountain, blurb: 'Parcelle nue ou à bâtir' },
+  { type: 'Ferme', icon: Trees, blurb: 'Exploitation ou domaine agricole' },
+  { type: 'Bureau', icon: Landmark, blurb: 'Espace professionnel / plateau' },
+  { type: 'Hôtel', icon: Building2, blurb: 'Établissement hôtelier ou lodge' },
+  { type: 'Entrepôt', icon: Landmark, blurb: 'Espace de stockage / logistique' },
+  { type: 'Local commercial', icon: Building2, blurb: 'Boutique ou espace de vente' },
+  { type: 'Immeuble', icon: Building2, blurb: 'Bâtiment complet R+N' },
+  { type: 'Résidence', icon: Building2, blurb: 'Ensemble de logements sécurisés' },
 ]
 
 export function StepType({

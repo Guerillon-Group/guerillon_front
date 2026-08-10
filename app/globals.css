@@ -27,6 +27,8 @@
 
   --color-glass: var(--glass);
   --color-hairline: var(--hairline);
+  --color-mbiyo: #16381e;
+  --color-mbiyo-gold: #c5a059;
 
   --radius-sm: calc(var(--radius) * 0.5);
   --radius-md: calc(var(--radius) * 0.75);
@@ -39,8 +41,8 @@
 :root {
   color-scheme: light;
 
-  /* Studio White foundation */
-  --background: #f9fafb;
+  /* MBIYO Premium Studio foundation */
+  --background: #f8faf7;
   --foreground: #111827;
 
   --card: #ffffff;
@@ -48,30 +50,30 @@
   --popover: #ffffff;
   --popover-foreground: #111827;
 
-  /* Charcoal-navy primary */
-  --primary: #111827;
+  /* MBIYO Forest Green primary (#16381E) */
+  --primary: #16381e;
   --primary-foreground: #ffffff;
 
-  --secondary: #f3f4f6;
-  --secondary-foreground: #111827;
+  --secondary: #f0f4f1;
+  --secondary-foreground: #16381e;
 
-  --muted: #f3f4f6;
-  --muted-foreground: #6b7280;
+  --muted: #f1f5f2;
+  --muted-foreground: #5a655d;
 
-  /* Electric blue, used sparingly */
-  --accent: #3b82f6;
-  --accent-foreground: #ffffff;
+  /* MBIYO Gold accent (#c5a059) */
+  --accent: #c5a059;
+  --accent-foreground: #16381e;
 
   --destructive: #ba1a1a;
 
-  --border: rgba(17, 24, 39, 0.08);
-  --input: rgba(17, 24, 39, 0.12);
-  --ring: #3b82f6;
+  --border: rgba(22, 56, 30, 0.1);
+  --input: rgba(22, 56, 30, 0.15);
+  --ring: #16381e;
 
-  --glass: rgba(255, 255, 255, 0.72);
-  --hairline: rgba(17, 24, 39, 0.06);
+  --glass: rgba(255, 255, 255, 0.82);
+  --hairline: rgba(22, 56, 30, 0.08);
 
-  --radius: 1rem;
+  --radius: 0.85rem;
 }
 
 @layer base {

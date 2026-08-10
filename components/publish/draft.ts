@@ -36,18 +36,23 @@ export const cityCoords: Record<string, [number, number]> = {
 }
 
 export const featureOptions = [
-  'Groupe électrogène',
-  'Panneaux solaires',
-  'Forage / citerne',
-  'Fibre optique',
-  'Parking privé',
-  'Gardiennage 24/7',
-  'Cuisine équipée',
   'Piscine',
-  'Jardin',
+  'Internet',
+  'Ascenseur',
+  'Jacuzzi',
+  'Caméra',
   'Climatisation',
+  'Générateur',
+  'Panneaux solaires',
+  'Cuisine équipée',
   'Meublé',
-  'Titre foncier vérifié',
+  'Vue sur mer',
+  'Vue sur lac',
+  'Terrasse',
+  'Balcon',
+  'Jardin',
+  'Salle de sport',
+  'Sécurité',
 ]
 
 export const emptyDraft: Draft = {

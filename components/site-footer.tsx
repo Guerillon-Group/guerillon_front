@@ -33,21 +33,20 @@ const columns = [
 
 export function SiteFooter() {
   return (
-    <footer className="mt-20 border-t border-border bg-card">
+    <footer className="mt-20 border-t border-border bg-[#16381e] text-white">
       <div className="mx-auto w-full max-w-[1280px] px-4 py-14 md:px-6">
         <div className="flex flex-col gap-12 lg:flex-row lg:justify-between">
-          <div className="max-w-xs">
-            <Brand />
-            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              L&apos;immobilier congolais, enfin lisible. Annonces vérifiées, titres contrôlés, agents certifiés à
-              Goma, Bukavu et Kinshasa.
+          <div className="max-w-sm">
+            <Brand invert showTagline />
+            <p className="mt-4 text-sm leading-relaxed text-emerald-100/80">
+              Le premier réseau d&apos;immobilier d&apos;exception en Afrique. Annonces d&apos;exception, titres fonciers sécurisés et opportunités d&apos;investissement à travers le continent et pour la diaspora.
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 lg:gap-16">
             {columns.map((col) => (
               <div key={col.title}>
-                <h3 className="text-xs font-semibold tracking-[0.05em] text-muted-foreground uppercase">
+                <h3 className="text-xs font-bold tracking-[0.1em] text-[#c5a059] uppercase">
                   {col.title}
                 </h3>
                 <ul className="mt-4 flex flex-col gap-3">
@@ -55,7 +54,7 @@ export function SiteFooter() {
                     <li key={link.label}>
                       <Link
                         href={link.href}
-                        className="text-sm text-foreground/80 transition-colors hover:text-foreground"
+                        className="text-sm text-emerald-50/80 transition-colors hover:text-white hover:underline"
                       >
                         {link.label}
                       </Link>
@@ -67,16 +66,16 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Real Estate SARL — Goma, République Démocratique du Congo
+        <div className="mt-12 flex flex-col gap-4 border-t border-emerald-900/60 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-emerald-200/70">
+            © {new Date().getFullYear()} MBIYO REAL-ESTATE — Plateforme Immobilière Pan-Africaine
           </p>
           <div className="flex gap-6">
-            <Link href="/" className="text-xs text-muted-foreground transition-colors hover:text-foreground">
-              Confidentialité
+            <Link href="/" className="text-xs text-emerald-200/70 transition-colors hover:text-white">
+              Confidentialité & Titres
             </Link>
-            <Link href="/" className="text-xs text-muted-foreground transition-colors hover:text-foreground">
-              Conditions
+            <Link href="/" className="text-xs text-emerald-200/70 transition-colors hover:text-white">
+              Conditions Générales
             </Link>
           </div>
         </div>

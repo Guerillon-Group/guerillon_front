@@ -20,18 +20,23 @@ export type Filters = {
 export const transactions: Transaction[] = ['Tout', 'À vendre', 'À louer']
 
 export const amenityCatalog = [
-  { id: 'generateur', label: 'Groupe électrogène' },
-  { id: 'eau', label: 'Forage ou citerne' },
-  { id: 'fibre', label: 'Fibre optique' },
-  { id: 'gardiennage', label: 'Gardiennage 24/7' },
-  { id: 'parking', label: 'Parking privé' },
-  { id: 'clim', label: 'Climatisation' },
-  { id: 'solaire', label: 'Panneaux solaires' },
   { id: 'piscine', label: 'Piscine' },
-  { id: 'jardin', label: 'Jardin' },
-  { id: 'terrasse', label: 'Terrasse' },
-  { id: 'meuble', label: 'Meublé' },
+  { id: 'internet', label: 'Internet' },
   { id: 'ascenseur', label: 'Ascenseur' },
+  { id: 'jacuzzi', label: 'Jacuzzi' },
+  { id: 'camera', label: 'Caméra de sécurité' },
+  { id: 'clim', label: 'Climatisation' },
+  { id: 'generateur', label: 'Générateur' },
+  { id: 'solaire', label: 'Panneaux solaires' },
+  { id: 'cuisine-equipee', label: 'Cuisine équipée' },
+  { id: 'meuble', label: 'Meublé' },
+  { id: 'vue-mer', label: 'Vue sur mer' },
+  { id: 'vue-lac', label: 'Vue sur lac' },
+  { id: 'terrasse', label: 'Terrasse' },
+  { id: 'balcon', label: 'Balcon' },
+  { id: 'jardin', label: 'Jardin' },
+  { id: 'salle-de-sport', label: 'Salle de sport' },
+  { id: 'securite', label: 'Sécurité 24/7' },
 ] as const
 
 export const accessCatalog = [

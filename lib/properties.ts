@@ -1,32 +1,125 @@
+export type PropertyType =
+  | 'Appartement'
+  | 'Maison'
+  | 'Villa'
+  | 'Studio'
+  | 'Terrain'
+  | 'Ferme'
+  | 'Bureau'
+  | 'Hôtel'
+  | 'Entrepôt'
+  | 'Local commercial'
+  | 'Immeuble'
+  | 'Résidence'
+
+export type PropertyCategory = 'Résidentiel' | 'Commercial' | 'Agricole' | 'Industriel'
+
+export type PropertyFeature =
+  | 'Piscine'
+  | 'Internet'
+  | 'Ascenseur'
+  | 'Jacuzzi'
+  | 'Caméra'
+  | 'Climatisation'
+  | 'Générateur'
+  | 'Panneaux solaires'
+  | 'Cuisine équipée'
+  | 'Meublé'
+  | 'Vue sur mer'
+  | 'Vue sur lac'
+  | 'Terrasse'
+  | 'Balcon'
+  | 'Jardin'
+  | 'Salle de sport'
+  | 'Sécurité'
+
+export type PropertyImage = {
+  id: string
+  propertyId: string
+  url: string
+  thumbnail?: string
+  width?: number
+  height?: number
+  size?: number
+  order?: number
+  isCover?: boolean
+}
+
 export type Listing = {
-  slug: string
+  id?: string
+  reference?: string
+  ownerId?: string
+  agentId?: string
+
   title: string
+  slug: string
+  description: string
+
+  propertyTypeId?: PropertyType
+  propertyCategoryId?: PropertyCategory
+  transactionType?: 'À vendre' | 'À louer'
+  status: string
+  condition?: string
+  constructionYear?: number
+
+  price: number
+  currencyId?: string
+  currency?: string
+  period?: string
+
+  area?: number // m² (living/built area)
+  landArea?: number // m²
+
+  bedrooms?: number
+  bathrooms?: number
+  livingRooms?: number
+  garages?: number
+  parking?: number
+  kitchens?: number
+  balconies?: number
+  offices?: number
+  floors?: number
+  floorNumber?: number
+
+  latitude?: number
+  longitude?: number
+  lat?: number
+  lng?: number
+
+  countryId?: string
+  provinceId?: string
+  cityId?: string
+  communeId?: string
+  districtId?: string
+  neighborhoodId?: string
+
   city: string
   district: string
-  price: number
-  currency: 'USD'
-  period?: 'mois'
-  status: 'À vendre' | 'À louer'
-  type: 'Appartement' | 'Villa' | 'Maison' | 'Terrain' | 'Bureau'
+  address?: string
+  postalCode?: string
+
+  featured?: boolean
+  verified: boolean
+  year?: number
+  rating?: number
+  reviews?: number
+
+  publishedAt?: string
+  expiresAt?: string
+
+  // Visuals & Features
+  image: string
+  gallery: string[]
+  images?: PropertyImage[]
+  badges: string[]
+  features: (PropertyFeature | string)[]
+  amenities: string[]
+  access?: string[]
   beds: number
   baths: number
   surface: number
-  image: string
-  gallery: string[]
-  badges: string[]
-  lat: number
-  lng: number
-  verified: boolean
-  /** année de construction ou de dernière rénovation */
-  year: number
-  rating: number
-  reviews: number
-  description: string
-  features: string[]
-  /** ids from `amenityCatalog` in lib/filters.ts */
-  amenities: string[]
-  /** ids from `accessCatalog` in lib/filters.ts */
-  access: string[]
+  type: PropertyType
+
   agent: {
     name: string
     role: string
@@ -298,5 +391,48 @@ export function shortPrice(price: number) {
   return `${new Intl.NumberFormat('fr-FR').format(price)} $`
 }
 
-export const cities = ['Goma', 'Bukavu', 'Kinshasa', 'Lubumbashi', 'Uvira'] as const
-export const propertyTypes = ['Appartement', 'Villa', 'Maison', 'Terrain', 'Bureau'] as const
+export const cities = ['Goma', 'Bukavu', 'Kinshasa', 'Lubumbashi', 'Bujumbura', 'Uvira', 'Kigali', 'Abidjan', 'Dakar'] as const
+
+export const propertyTypesList: PropertyType[] = [
+  'Appartement',
+  'Maison',
+  'Villa',
+  'Studio',
+  'Terrain',
+  'Ferme',
+  'Bureau',
+  'Hôtel',
+  'Entrepôt',
+  'Local commercial',
+  'Immeuble',
+  'Résidence',
+]
+
+export const propertyCategoriesList: PropertyCategory[] = [
+  'Résidentiel',
+  'Commercial',
+  'Agricole',
+  'Industriel',
+]
+
+export const propertyFeaturesList: PropertyFeature[] = [
+  'Piscine',
+  'Internet',
+  'Ascenseur',
+  'Jacuzzi',
+  'Caméra',
+  'Climatisation',
+  'Générateur',
+  'Panneaux solaires',
+  'Cuisine équipée',
+  'Meublé',
+  'Vue sur mer',
+  'Vue sur lac',
+  'Terrasse',
+  'Balcon',
+  'Jardin',
+  'Salle de sport',
+  'Sécurité',
+]
+
+export const propertyTypes = propertyTypesList

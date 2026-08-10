@@ -61,15 +61,15 @@ export function ListingCard({ listing, priority = false }: { listing: Listing; p
               </span>
             </p>
           </div>
-          {listing.verified && (
-            <span
-              className="flex shrink-0 items-center gap-1 text-xs font-medium text-accent"
-              title="Titre de propriété vérifié"
-            >
-              <BadgeCheck className="size-4" aria-hidden="true" />
-              <span className="sr-only">Annonce vérifiée</span>
-            </span>
-          )}
+            {listing.verified && (
+              <span
+                className="flex shrink-0 items-center gap-1 rounded-full bg-[#16381e]/10 px-2 py-0.5 text-xs font-semibold text-[#16381e] border border-[#16381e]/20"
+                title="Titre de propriété vérifié par MBIYO REAL-ESTATE"
+              >
+                <BadgeCheck className="size-3.5 fill-[#c5a059] text-white" aria-hidden="true" />
+                <span>Vérifié</span>
+              </span>
+            )}
         </div>
 
         <dl className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">

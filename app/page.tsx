@@ -46,14 +46,14 @@ const trust = [
 export default function HomePage() {
   return (
     <div className="flex min-h-dvh flex-col">
-      <div className="border-b border-hairline bg-secondary">
-        <div className="mx-auto flex w-full max-w-[1280px] items-center justify-center gap-2.5 px-4 py-2.5 md:px-6">
-          <span className="live-dot size-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
+      <div className="border-b border-emerald-900/10 bg-[#16381e] text-white">
+        <div className="mx-auto flex w-full max-w-[1280px] items-center justify-center gap-2.5 px-4 py-2 md:px-6">
+          <span className="live-dot size-1.5 shrink-0 rounded-full bg-[#c5a059]" aria-hidden="true" />
           <Link
             href="/publier"
-            className="text-center text-sm font-medium text-foreground underline underline-offset-4 transition-colors hover:text-accent"
+            className="text-center text-xs font-semibold text-emerald-50 hover:text-[#c5a059] transition-colors"
           >
-            Publiez votre bien gratuitement et recevez vos premières demandes sous 48 h
+            MBIYO REAL-ESTATE — Publiez votre bien ou projet d&apos;exception et touchez des investisseurs qualifiés.
           </Link>
         </div>
       </div>
@@ -64,21 +64,21 @@ export default function HomePage() {
         {/* Hero : recherche centrée */}
         <section className="mx-auto w-full max-w-[1280px] px-4 pt-8 md:px-6 md:pt-12">
           <div className="mx-auto max-w-[980px] text-center">
-            <p className="animate-in fill-mode-backwards inline-flex items-center gap-2 rounded-full border border-input px-3 py-1 text-xs font-medium text-muted-foreground duration-500 fade-in slide-in-from-bottom-2">
-              <ShieldCheck className="size-3.5 text-accent" aria-hidden="true" />
-              412 titres fonciers contrôlés ce mois-ci
+            <p className="animate-in fill-mode-backwards inline-flex items-center gap-2 rounded-full border border-[#16381e]/20 bg-[#16381e]/5 px-3.5 py-1 text-xs font-semibold text-[#16381e] duration-500 fade-in slide-in-from-bottom-2">
+              <ShieldCheck className="size-3.5 text-[#c5a059]" aria-hidden="true" />
+              Titres fonciers vérifiés & accompagnement certifié MBIYO
             </p>
             <h1
               style={{ animationDelay: '90ms' }}
-              className="animate-in fill-mode-backwards mt-5 font-display text-3xl leading-[1.1] font-bold tracking-tight text-balance text-foreground duration-700 fade-in slide-in-from-bottom-4 md:text-[44px]"
+              className="animate-in fill-mode-backwards mt-5 font-display text-3xl leading-[1.1] font-extrabold tracking-tight text-balance text-[#16381e] duration-700 fade-in slide-in-from-bottom-4 md:text-[46px]"
             >
-              L&apos;immobilier congolais, enfin lisible.
+              L&apos;Immobilier d&apos;Exception en Afrique.
             </h1>
             <p
               style={{ animationDelay: '180ms' }}
               className="animate-in fill-mode-backwards mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-muted-foreground duration-700 fade-in slide-in-from-bottom-4"
             >
-              Annonces vérifiées une par une, titres confrontés au cadastre, agents que vous pouvez appeler.
+              Trouvez des résidences de prestige, villas, appartements et terrains sécurisés avec titre foncier garanti par MBIYO REAL-ESTATE.
             </p>
           </div>
 
@@ -110,12 +110,27 @@ export default function HomePage() {
         <section className="mx-auto w-full max-w-[1280px] px-4 pt-14 md:px-6 md:pt-20">
           <Reveal>
             <h2 className="font-display text-2xl leading-tight font-bold tracking-tight text-foreground md:text-[30px]">
-              Reprendre là où vous en étiez
+              A Bujumbura
             </h2>
           </Reveal>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {listings.map((listing, i) => (
               <Reveal key={listing.slug} as="li" delay={Math.min(i, 5) * 70}>
+                <CompactCard listing={listing} />
+              </Reveal>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mx-auto w-full max-w-[1280px] px-4 pt-14 md:px-6 md:pt-20">
+          <Reveal>
+            <h2 className="font-display text-2xl leading-tight font-bold tracking-tight text-foreground md:text-[30px]">
+              A Goma
+            </h2>
+          </Reveal>
+          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {listings.map((listing, i = 2) => (
+              <Reveal key={listing.slug} as="li" delay={Math.min(i, 2) * 70}>
                 <CompactCard listing={listing} />
               </Reveal>
             ))}
