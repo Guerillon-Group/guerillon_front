@@ -20,7 +20,7 @@ export function Brand({
       <div
         className={cn(
           'relative flex size-10 shrink-0 items-center justify-center rounded-xl p-1 shadow-sm transition-transform duration-300 group-hover:scale-105',
-          invert ? 'bg-white/10 backdrop-blur-md border border-white/20' : 'bg-[#16381e] text-white shadow-[#16381e]/20',
+          invert ? 'bg-white/10 backdrop-blur-md border border-white/20' : 'bg-white text-white shadow-[#16381e]/2',
         )}
       >
         <Image
@@ -28,7 +28,7 @@ export function Brand({
           alt="MBIYO Real Estate Logo"
           width={36}
           height={36}
-          className="size-full bg-red-500 object-contain"
+          className="size-full object-contain"
           priority
         />
       </div>
