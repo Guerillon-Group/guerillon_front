@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LogIn, Menu, Plus, User, X } from 'lucide-react'
+import { Building2, LogIn, Menu, Plus, User, X } from 'lucide-react'
 
 import { AuthModal } from '@/components/auth/auth-modal'
+import { CreateAgencyModal } from '@/components/agency/create-agency-modal'
 import { Brand } from '@/components/brand'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -24,10 +25,13 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
+  const [agencyOpen, setAgencyOpen] = useState(false)
 
+  const [mounted, setMounted] = useState(false)
   const { user, isAuthenticated, initializeAuth, logout } = useAuthStore()
 
   useEffect(() => {
+    setMounted(true)
     initializeAuth()
   }, [initializeAuth])
 
@@ -66,7 +70,7 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
                     'relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-95',
                     active
                       ? 'bg-secondary text-foreground shadow-xs'
-                      : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground',
+                      : 'text-[#16381e]/80 hover:bg-secondary/50 hover:text-foreground',
                   )}
                 >
                   <span>{item.label}</span>
@@ -84,7 +88,7 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
-            {!isAuthenticated ? (
+            {!mounted || !isAuthenticated ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -96,6 +100,15 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
               </Button>
             ) : (
               <div className="hidden items-center gap-2 md:flex">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAgencyOpen(true)}
+                  className="h-9 gap-1.5 rounded-full border-[#16381e]/20 px-3 text-xs font-bold text-[#16381e] hover:bg-secondary"
+                >
+                  <Building2 className="size-3.5 text-[#c5a059]" />
+                  Créer une Agence
+                </Button>
                 <Link
                   href="/tableau-de-bord"
                   className="flex items-center gap-2 rounded-full bg-secondary/80 px-3 py-1.5 text-xs font-bold text-[#16381e] hover:bg-secondary"
@@ -187,6 +200,7 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
       </header>
 
       <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
+      <CreateAgencyModal open={agencyOpen} onOpenChange={setAgencyOpen} />
     </>
   )
 }
