@@ -10,6 +10,7 @@ import { StepDetails } from '@/components/publish/step-details'
 import { StepPhotos } from '@/components/publish/step-photos'
 import { StepReview } from '@/components/publish/step-review'
 import { StepType } from '@/components/publish/step-type'
+import { usePropertyMutations } from '@/mutations/usePropertyMutations'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -26,7 +27,9 @@ export function PublishWizard() {
   const errors = useMemo(() => stepErrors(draft, step), [draft, step])
   const last = step === steps.length - 1
 
-  function next() {
+  const { createProperty, loading: isSubmitting, error: apiSubmitError } = usePropertyMutations()
+
+  async function next() {
     if (errors.length > 0) {
       setShowErrors(true)
       return
@@ -34,10 +37,26 @@ export function PublishWizard() {
     setShowErrors(false)
     if (last) {
       setState('sending')
-      window.setTimeout(() => {
+      try {
+        await createProperty({
+          title: draft.title || `Propriété à ${draft.city}`,
+          description: draft.description,
+          transaction_type: draft.intent === 'Acheter' ? 'sale' : 'rent',
+          price: Number(draft.price) || 0,
+          currency: draft.currency || 'USD',
+          surface_area: Number(draft.surface) || undefined,
+          bedrooms: Number(draft.bedrooms) || undefined,
+          bathrooms: Number(draft.bathrooms) || undefined,
+          address: draft.address || draft.neighborhood || draft.city,
+          city: draft.city,
+          neighborhood: draft.neighborhood,
+          status: 'published',
+        })
         setState('sent')
         window.scrollTo({ top: 0, behavior: 'smooth' })
-      }, 900)
+      } catch (err) {
+        setState('editing')
+      }
       return
     }
     setStep((s) => s + 1)
@@ -68,6 +87,12 @@ export function PublishWizard() {
         {step === 2 && <StepDetails draft={draft} update={update} />}
         {step === 3 && <StepPhotos draft={draft} update={update} />}
         {step === 4 && <StepReview draft={draft} update={update} errors={showErrors ? errors : []} />}
+
+        {apiSubmitError && (
+          <div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive font-semibold">
+            {apiSubmitError}
+          </div>
+        )}
 
         {showErrors && errors.length > 0 && step !== 4 && (
           <ul className="mt-8 flex flex-col gap-1.5 rounded-2xl border border-destructive/20 bg-destructive/5 p-4">
