@@ -1,62 +1,176 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { ArrowRight, CheckCircle2, Lock, Mail, Phone, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowRight, CheckCircle2, AlertCircle, Mail, Phone, ShieldCheck } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
+import { useAuthMutations } from '@/mutations/useAuthMutations'
+import { useAuthStore } from '@/stores/useAuthStore'
 
 export type AuthModalProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
+declare global {
+  interface Window {
+    google?: any
+  }
+}
+
 export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [method, setMethod] = useState<'email' | 'phone'>('email')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  const [password, setPassword] = useState('')
   const [countryCode, setCountryCode] = useState('+243')
   const [step, setStep] = useState<'input' | 'otp' | 'success'>('input')
   const [otpCode, setOtpCode] = useState(['', '', '', '', '', ''])
-  const [loading, setLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-      setStep('otp')
-    }, 800)
+  const {
+    loading,
+    error,
+    loginMutation,
+    verifyOtpMutation,
+    resendOtpMutation,
+    googleLoginMutation,
+  } = useAuthMutations()
+
+  const user = useAuthStore((state) => state.user)
+
+  // Charger le script Google Identity Services (GIS) dynamique
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+
+    if (!window.google && clientId) {
+      const script = document.createElement('script')
+      script.src = 'https://accounts.google.com/gsi/client'
+      script.async = true
+      script.defer = true
+      document.body.appendChild(script)
+    }
+  }, [])
+
+  // Déclencher la connexion avec Google
+  const handleGoogleLogin = async () => {
+    setErrorMessage(null)
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+
+    if (window.google?.accounts?.oauth2 && clientId) {
+      const client = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'email profile',
+        callback: async (tokenResponse: any) => {
+          if (tokenResponse.access_token) {
+            try {
+              await googleLoginMutation(tokenResponse.access_token)
+              setStep('success')
+              setTimeout(() => {
+                onOpenChange(false)
+                setStep('input')
+              }, 1500)
+            } catch (err: any) {
+              setErrorMessage(err?.message || 'Échec de la connexion avec Google.')
+            }
+          }
+        },
+      })
+      client.requestAccessToken()
+    } else {
+      // Prompt d'intégration pour test / fallback si Client ID non configuré
+      const testToken = prompt(
+        "Veuillez saisir votre token Google OAuth pour tester l'authentification (ou configurez NEXT_PUBLIC_GOOGLE_CLIENT_ID dans .env) :"
+      )
+      if (testToken) {
+        try {
+          await googleLoginMutation(testToken)
+          setStep('success')
+          setTimeout(() => {
+            onOpenChange(false)
+            setStep('input')
+          }, 1500)
+        } catch (err: any) {
+          setErrorMessage(err?.message || 'Erreur lors de la validation du token Google.')
+        }
+      } else {
+        setErrorMessage('La configuration Google OAuth (NEXT_PUBLIC_GOOGLE_CLIENT_ID) est requise.')
+      }
+    }
   }
 
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  // Soumission du formulaire Email / Téléphone
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
+    setErrorMessage(null)
+
+    try {
+      if (method === 'email') {
+        const fullEmail = email.trim()
+        if (password) {
+          // Connexion directe par mot de passe
+          await loginMutation({ email: fullEmail, password })
+          setStep('success')
+          setTimeout(() => {
+            onOpenChange(false)
+            setStep('input')
+          }, 1500)
+        } else {
+          // Demande de code OTP par email
+          await resendOtpMutation({ email: fullEmail })
+          setStep('otp')
+        }
+      } else {
+        // Envoi OTP Téléphone
+        const fullPhone = `${countryCode}${phone.trim()}`
+        await resendOtpMutation({ email: fullPhone })
+        setStep('otp')
+      }
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Une erreur est survenue lors de la connexion.')
+    }
+  }
+
+  // Vérification du code OTP
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrorMessage(null)
+    const code = otpCode.join('')
+
+    if (code.length < 6) {
+      setErrorMessage('Veuillez saisir le code complet à 6 chiffres.')
+      return
+    }
+
+    try {
+      const targetEmail = method === 'email' ? email : `${countryCode}${phone}`
+      await verifyOtpMutation({ email: targetEmail, code })
       setStep('success')
       setTimeout(() => {
         onOpenChange(false)
         setStep('input')
       }, 1500)
-    }, 1000)
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Code OTP invalide ou expiré.')
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[440px] overflow-hidden rounded-3xl border-border/80 bg-white p-0 shadow-2xl">
-        {/* Header Visual with MBIYO Brand Banner */}
+        {/* Header Visual avec Bannière MBIYO */}
         <div className="bg-[#16381e] p-6 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 size-48 rounded-full bg-[#c5a059]/10 blur-2xl pointer-events-none" />
-          
+
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-xl bg-white p-1 shadow-sm">
               <Image
@@ -79,20 +193,22 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         </div>
 
         <div className="p-6">
+          {/* Message d'erreur s'il y en a un */}
+          {(errorMessage || error?.message) && (
+            <div className="mb-4 flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs font-medium text-red-600 border border-red-200">
+              <AlertCircle className="size-4 shrink-0" />
+              <span>{errorMessage || error?.message}</span>
+            </div>
+          )}
+
           {step === 'input' && (
             <div className="flex flex-col gap-5">
-              {/* Google Sign-In Button */}
+              {/* Bouton de Connexion Google */}
               <button
                 type="button"
-                onClick={() => {
-                  setLoading(true)
-                  setTimeout(() => {
-                    setLoading(false)
-                    setStep('success')
-                    setTimeout(() => onOpenChange(false), 1200)
-                  }, 800)
-                }}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl border border-border/80 bg-white py-3 px-4 text-sm font-semibold text-foreground transition-all hover:bg-secondary/60 hover:shadow-xs active:scale-[0.99]"
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="flex w-full items-center justify-center gap-3 rounded-2xl border border-border/80 bg-white py-3 px-4 text-sm font-semibold text-foreground transition-all hover:bg-secondary/60 hover:shadow-xs active:scale-[0.99] disabled:opacity-50"
               >
                 <svg className="size-5 shrink-0" viewBox="0 0 24 24">
                   <path
@@ -112,10 +228,10 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                   />
                 </svg>
-                <span>Continuer avec Google</span>
+                <span>{loading ? 'Connexion Google...' : 'Continuer avec Google'}</span>
               </button>
 
-              {/* Divider */}
+              {/* Séparateur */}
               <div className="relative flex items-center justify-center">
                 <span className="w-full border-t border-border/80" />
                 <span className="relative bg-white px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -123,7 +239,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 </span>
               </div>
 
-              {/* Method Switch (Email vs Phone) */}
+              {/* Sélecteur de méthode (Email / Téléphone) */}
               <div className="flex rounded-xl bg-secondary/80 p-1">
                 <button
                   type="button"
@@ -132,7 +248,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                     'flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold transition-all',
                     method === 'email'
                       ? 'bg-white text-[#16381e] shadow-xs'
-                      : 'text-muted-foreground hover:text-foreground',
+                      : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
                   <Mail className="size-3.5" />
@@ -145,7 +261,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                     'flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-xs font-bold transition-all',
                     method === 'phone'
                       ? 'bg-white text-[#16381e] shadow-xs'
-                      : 'text-muted-foreground hover:text-foreground',
+                      : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
                   <Phone className="size-3.5" />
@@ -153,22 +269,37 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                 </button>
               </div>
 
-              {/* Input Form */}
+              {/* Formulaire de saisie */}
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 {method === 'email' ? (
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-foreground">
-                      Votre adresse e-mail
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-semibold text-foreground">
+                        Adresse e-mail
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="exemple@mbiyo.com"
+                          className="w-full rounded-2xl border border-border/80 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-foreground outline-none transition-all focus:border-[#16381e] focus:ring-2 focus:ring-[#16381e]/15"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-semibold text-foreground">
+                        Mot de passe <span className="text-muted-foreground font-normal">(Optionnel si OTP)</span>
+                      </label>
                       <input
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="exemple@mbiyo.com"
-                        className="w-full rounded-2xl border border-border/80 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-foreground outline-none transition-all focus:border-[#16381e] focus:ring-2 focus:ring-[#16381e]/15"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full rounded-2xl border border-border/80 bg-white py-2.5 px-4 text-sm font-medium text-foreground outline-none transition-all focus:border-[#16381e] focus:ring-2 focus:ring-[#16381e]/15"
                       />
                     </div>
                   </div>
@@ -210,10 +341,10 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                   className="mt-2 h-11 w-full gap-2 rounded-2xl bg-[#16381e] text-white hover:bg-[#16381e]/90 font-bold text-sm shadow-md shadow-[#16381e]/20"
                 >
                   {loading ? (
-                    <span>Connexion en cours...</span>
+                    <span>Traitement en cours...</span>
                   ) : (
                     <>
-                      <span>Recevoir le code de vérification</span>
+                      <span>{password ? 'Se connecter' : 'Recevoir le code OTP'}</span>
                       <ArrowRight className="size-4" />
                     </>
                   )}
@@ -283,8 +414,12 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               <div className="flex size-14 items-center justify-center rounded-full bg-[#16381e]/10 text-[#16381e]">
                 <CheckCircle2 className="size-8 text-[#c5a059]" />
               </div>
-              <h3 className="font-display text-xl font-extrabold text-[#16381e]">Connexion Réussie !</h3>
-              <p className="text-xs text-muted-foreground">Bienvenue sur votre espace MBIYO REAL-ESTATE.</p>
+              <h3 className="font-display text-xl font-extrabold text-[#16381e]">
+                Connexion Réussie !
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Bienvenue {user?.name ? `${user.name}` : ''} sur votre espace MBIYO REAL-ESTATE.
+              </p>
             </div>
           )}
         </div>

@@ -10,6 +10,7 @@ import { AuthModal } from '@/components/auth/auth-modal'
 import { Brand } from '@/components/brand'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/stores/useAuthStore'
 
 const nav = [
   { href: '/', label: 'Acheter' },
@@ -23,6 +24,12 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
+
+  const { user, isAuthenticated, initializeAuth, logout } = useAuthStore()
+
+  useEffect(() => {
+    initializeAuth()
+  }, [initializeAuth])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -77,15 +84,35 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setAuthOpen(true)}
-              className="hidden h-10 gap-1.5 rounded-full px-4 border-border text-xs font-bold text-[#16381e] hover:bg-secondary md:inline-flex"
-            >
-              <LogIn className="size-3.5 text-[#c5a059]" />
-              Se connecter
-            </Button>
+            {!isAuthenticated ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAuthOpen(true)}
+                className="hidden h-10 gap-1.5 rounded-full px-4 border-border text-xs font-bold text-[#16381e] hover:bg-secondary md:inline-flex"
+              >
+                <LogIn className="size-3.5 text-[#c5a059]" />
+                Se connecter
+              </Button>
+            ) : (
+              <div className="hidden items-center gap-2 md:flex">
+                <Link
+                  href="/tableau-de-bord"
+                  className="flex items-center gap-2 rounded-full bg-secondary/80 px-3 py-1.5 text-xs font-bold text-[#16381e] hover:bg-secondary"
+                >
+                  <User className="size-3.5 text-[#c5a059]" />
+                  <span>{user?.name || 'Mon Espace'}</span>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => logout()}
+                  className="text-xs text-muted-foreground hover:text-red-600 font-semibold"
+                >
+                  Déconnexion
+                </Button>
+              </div>
+            )}
 
             <Button
               nativeButton={false}

@@ -114,6 +114,24 @@ export function useAuthMutations() {
     }
   };
 
+  const googleLoginMutation = async (googleToken: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await authService.googleLogin(googleToken);
+      if (response.token && response.user) {
+        setAuth(response.user, response.token);
+      }
+      return response;
+    } catch (err) {
+      const parsedError = parseApiError(err);
+      setError(parsedError);
+      throw parsedError;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logoutMutation = async () => {
     setLoading(true);
     try {
@@ -132,6 +150,7 @@ export function useAuthMutations() {
     resendOtpMutation,
     forgotPasswordMutation,
     resetPasswordMutation,
+    googleLoginMutation,
     logoutMutation,
   };
 }
