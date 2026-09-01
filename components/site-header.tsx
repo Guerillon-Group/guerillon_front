@@ -8,6 +8,7 @@ import { Building2, LogIn, Menu, Plus, User, X } from 'lucide-react'
 
 import { AuthModal } from '@/components/auth/auth-modal'
 import { CreateAgencyModal } from '@/components/agency/create-agency-modal'
+import { MobileBottomNav } from '@/components/mobile-bottom-nav'
 import { Brand } from '@/components/brand'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -199,6 +200,7 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
         )}
       </header>
 
+      <MobileBottomNav onOpenAuth={() => setAuthOpen(true)} />
       <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
       <CreateAgencyModal open={agencyOpen} onOpenChange={setAgencyOpen} />
     </>

@@ -106,17 +106,17 @@ export function CreateAgencyModal({ open, onOpenChange, onSuccess }: CreateAgenc
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[540px] max-h-[90vh] overflow-y-auto rounded-3xl border-border/80 bg-white p-0 shadow-2xl">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-[540px] max-h-[85vh] overflow-y-auto rounded-3xl border-border/80 bg-white p-0 shadow-2xl">
         {/* En-tête Visuel avec Marque MBIYO */}
-        <div className="bg-[#16381e] p-6 text-white relative overflow-hidden">
+        <div className="bg-[#16381e] p-5 sm:p-6 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 size-48 rounded-full bg-[#c5a059]/10 blur-2xl pointer-events-none" />
 
           <div className="flex items-center gap-3">
-            <div className="flex size-11 items-center justify-center rounded-xl bg-white p-2 shadow-sm">
-              <Building2 className="size-6 text-[#16381e]" />
+            <div className="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl bg-white p-2 shadow-sm">
+              <Building2 className="size-5 sm:size-6 text-[#16381e]" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-extrabold tracking-tight text-white">
+              <DialogTitle className="text-lg sm:text-xl font-extrabold tracking-tight text-white">
                 Créer une Agence Immobilière
               </DialogTitle>
               <DialogDescription className="text-xs text-emerald-100/80">
@@ -126,7 +126,7 @@ export function CreateAgencyModal({ open, onOpenChange, onSuccess }: CreateAgenc
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {!isAuthenticated ? (
             <div className="flex flex-col items-center justify-center gap-4 py-8 text-center">
               <div className="flex size-14 items-center justify-center rounded-full bg-amber-50 text-amber-600 border border-amber-200">
