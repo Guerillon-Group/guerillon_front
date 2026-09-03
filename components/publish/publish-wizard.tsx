@@ -27,7 +27,7 @@ export function PublishWizard() {
   const errors = useMemo(() => stepErrors(draft, step), [draft, step])
   const last = step === steps.length - 1
 
-  const { createProperty, loading: isSubmitting, error: apiSubmitError } = usePropertyMutations()
+  const { createProperty, uploadImages, loading: isSubmitting, error: apiSubmitError } = usePropertyMutations()
 
   async function next() {
     if (errors.length > 0) {
@@ -38,7 +38,7 @@ export function PublishWizard() {
     if (last) {
       setState('sending')
       try {
-        await createProperty({
+        const createdProperty = await createProperty({
           title: draft.title || `Propriété à ${draft.city}`,
           description: draft.description,
           transaction_type: draft.intent === 'Acheter' ? 'sale' : 'rent',
@@ -50,8 +50,13 @@ export function PublishWizard() {
           address: draft.address || draft.neighborhood || draft.city,
           city: draft.city,
           neighborhood: draft.neighborhood,
-          status: 'published',
+          status: 'available',
         })
+
+        if (createdProperty?.id && draft.photos && draft.photos.length > 0) {
+          await uploadImages(createdProperty.id, draft.photos)
+        }
+
         setState('sent')
         window.scrollTo({ top: 0, behavior: 'smooth' })
       } catch (err) {
