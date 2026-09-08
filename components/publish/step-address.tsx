@@ -1,11 +1,14 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { MapPin } from 'lucide-react'
 
 import { LocationCanvas } from '@/components/map/location-canvas'
 import { cityCoords, type Draft } from '@/components/publish/draft'
 import { Field, Select, StepHeading, TextInput } from '@/components/publish/fields'
 import { cities } from '@/lib/properties'
+import { worldService } from '@/services/world.service'
+import { WorldCity, WorldCountry, WorldState } from '@/types/world.types'
 
 export function StepAddress({
   draft,
@@ -14,30 +17,138 @@ export function StepAddress({
   draft: Draft
   update: (patch: Partial<Draft>) => void
 }) {
+  const [countriesList, setCountriesList] = useState<WorldCountry[]>([])
+  const [statesList, setStatesList] = useState<WorldState[]>([])
+  const [citiesList, setCitiesList] = useState<WorldCity[]>([])
+
+  useEffect(() => {
+    async function loadCountries() {
+      const data = await worldService.getCountries()
+      if (data && data.length > 0) {
+        setCountriesList(data)
+      }
+    }
+    loadCountries()
+  }, [])
+
+  useEffect(() => {
+    async function loadStates() {
+      if (draft.country_id) {
+        const data = await worldService.getStates(draft.country_id)
+        setStatesList(data)
+      } else {
+        setStatesList([])
+      }
+    }
+    loadStates()
+  }, [draft.country_id])
+
+  useEffect(() => {
+    async function loadCities() {
+      if (draft.country_id || draft.province_id) {
+        const data = await worldService.getCities({
+          countryId: draft.country_id,
+          stateId: draft.province_id,
+        })
+        setCitiesList(data)
+      } else {
+        setCitiesList([])
+      }
+    }
+    loadCities()
+  }, [draft.country_id, draft.province_id])
+
   return (
     <div className="flex flex-col gap-8">
       <StepHeading
         title="Où se situe le bien ?"
-        description="Placez le repère à l’emplacement exact : les acheteurs filtrent d’abord par quartier, puis sur la carte."
+        description="Placez le repère à l’emplacement exact : les acheteurs filtrent d’abord par pays, province, ville et quartier, puis sur la carte."
       />
 
       <div className="grid gap-4 sm:grid-cols-2">
+        {countriesList.length > 0 && (
+          <Field label="Pays">
+            {(id) => (
+              <Select
+                id={id}
+                value={draft.country_id || ''}
+                onChange={(event) => {
+                  const val = event.target.value ? Number(event.target.value) : undefined
+                  update({ country_id: val, province_id: undefined, city_id: undefined })
+                }}
+              >
+                <option value="">Sélectionner un pays</option>
+                {countriesList.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+        )}
+
+        {statesList.length > 0 && (
+          <Field label="Province / État">
+            {(id) => (
+              <Select
+                id={id}
+                value={draft.province_id || ''}
+                onChange={(event) => {
+                  const val = event.target.value ? Number(event.target.value) : undefined
+                  update({ province_id: val, city_id: undefined })
+                }}
+              >
+                <option value="">Sélectionner une province</option>
+                {statesList.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+        )}
+
         <Field label="Ville">
           {(id) => (
             <Select
               id={id}
-              value={draft.city}
+              value={draft.city_id ? String(draft.city_id) : draft.city}
               onChange={(event) => {
-                const city = event.target.value
-                const coords = cityCoords[city]
-                update(coords ? { city, lat: coords[0], lng: coords[1] } : { city })
+                const val = event.target.value
+                const foundWorldCity = citiesList.find((c) => String(c.id) === val)
+                if (foundWorldCity) {
+                  const lat = foundWorldCity.latitude ? Number(foundWorldCity.latitude) : draft.lat
+                  const lng = foundWorldCity.longitude ? Number(foundWorldCity.longitude) : draft.lng
+                  update({
+                    city_id: foundWorldCity.id,
+                    city: foundWorldCity.name,
+                    lat,
+                    lng,
+                  })
+                } else {
+                  const coords = cityCoords[val]
+                  update(coords ? { city: val, city_id: undefined, lat: coords[0], lng: coords[1] } : { city: val, city_id: undefined })
+                }
               }}
             >
-              {cities.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
+              {citiesList.length > 0 ? (
+                <>
+                  <option value="">Sélectionner une ville</option>
+                  {citiesList.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </>
+              ) : (
+                cities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))
+              )}
             </Select>
           )}
         </Field>

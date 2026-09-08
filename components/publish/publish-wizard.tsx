@@ -44,17 +44,27 @@ export function PublishWizard() {
           transaction_type: draft.intent === 'Acheter' ? 'sale' : 'rent',
           price: Number(draft.price) || 0,
           currency: draft.currency || 'USD',
+          currency_id: draft.currency_id,
           surface_area: Number(draft.surface) || undefined,
-          bedrooms: Number(draft.bedrooms) || undefined,
-          bathrooms: Number(draft.bathrooms) || undefined,
-          address: draft.address || draft.neighborhood || draft.city,
+          bedrooms: Number(draft.beds) || undefined,
+          bathrooms: Number(draft.baths) || undefined,
+          country_id: draft.country_id,
+          province_id: draft.province_id,
+          city_id: draft.city_id,
+          address: draft.address || draft.district || draft.city,
           city: draft.city,
-          neighborhood: draft.neighborhood,
+          district: draft.district,
           status: 'available',
         })
 
         if (createdProperty?.id && draft.photos && draft.photos.length > 0) {
-          await uploadImages(createdProperty.id, draft.photos)
+          const filesToUpload = draft.photos
+            .map((p) => p.file)
+            .filter((f): f is File => f instanceof File)
+
+          if (filesToUpload.length > 0) {
+            await uploadImages(createdProperty.id, filesToUpload)
+          }
         }
 
         setState('sent')

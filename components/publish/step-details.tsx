@@ -1,10 +1,13 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
 
 import { featureOptions, isLand, type Draft } from '@/components/publish/draft'
-import { Field, StepHeading, Stepper, TextArea, TextInput } from '@/components/publish/fields'
+import { Field, Select, StepHeading, Stepper, TextArea, TextInput } from '@/components/publish/fields'
 import { cn } from '@/lib/utils'
+import { worldService } from '@/services/world.service'
+import { WorldCurrency } from '@/types/world.types'
 
 export function StepDetails({
   draft,
@@ -14,6 +17,17 @@ export function StepDetails({
   update: (patch: Partial<Draft>) => void
 }) {
   const land = isLand(draft)
+  const [currencies, setCurrencies] = useState<WorldCurrency[]>([])
+
+  useEffect(() => {
+    async function loadCurrencies() {
+      const data = await worldService.getCurrencies()
+      if (data && data.length > 0) {
+        setCurrencies(data)
+      }
+    }
+    loadCurrencies()
+  }, [])
 
   return (
     <div className="flex flex-col gap-8">
@@ -34,25 +48,61 @@ export function StepDetails({
         )}
       </Field>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field
-          label={draft.status === 'À louer' ? 'Loyer mensuel' : 'Prix de vente'}
-          hint={draft.status === 'À louer' ? 'Montant en dollars, charges comprises.' : 'Montant en dollars, hors frais de notaire.'}
-        >
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="sm:col-span-2">
+          <Field
+            label={draft.status === 'À louer' ? 'Loyer mensuel' : 'Prix de vente'}
+            hint={draft.status === 'À louer' ? 'Montant mensuel, charges comprises.' : 'Montant total, hors frais de notaire.'}
+          >
+            {(id) => (
+              <TextInput
+                id={id}
+                type="number"
+                min={0}
+                inputMode="numeric"
+                value={draft.price}
+                onChange={(event) => update({ price: event.target.value })}
+                placeholder={draft.status === 'À louer' ? '1450' : '268000'}
+                suffix={draft.currency || 'USD'}
+              />
+            )}
+          </Field>
+        </div>
+
+        <Field label="Devise">
           {(id) => (
-            <TextInput
+            <Select
               id={id}
-              type="number"
-              min={0}
-              inputMode="numeric"
-              value={draft.price}
-              onChange={(event) => update({ price: event.target.value })}
-              placeholder={draft.status === 'À louer' ? '1450' : '268000'}
-              suffix={draft.status === 'À louer' ? '$/mois' : 'USD'}
-            />
+              value={draft.currency_id ? String(draft.currency_id) : draft.currency}
+              onChange={(event) => {
+                const val = event.target.value
+                const foundCurr = currencies.find((c) => String(c.id) === val || c.code === val)
+                if (foundCurr) {
+                  update({ currency_id: foundCurr.id, currency: foundCurr.code })
+                } else {
+                  update({ currency: val })
+                }
+              }}
+            >
+              {currencies.length > 0 ? (
+                currencies.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.code} ({c.name})
+                  </option>
+                ))
+              ) : (
+                <>
+                  <option value="USD">USD ($)</option>
+                  <option value="CDF">CDF (FC)</option>
+                  <option value="EUR">EUR (€)</option>
+                </>
+              )}
+            </Select>
           )}
         </Field>
+      </div>
 
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field label={land ? 'Superficie du terrain' : 'Surface habitable'}>
           {(id) => (
             <TextInput

@@ -46,6 +46,7 @@ export function StepPhotos({
         id: `${file.name}-${file.size}-${Math.random().toString(36).slice(2, 8)}`,
         url: URL.createObjectURL(file),
         name: file.name,
+        file,
       }))
 
     if (newPhotos.length === 0) return

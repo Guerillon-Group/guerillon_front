@@ -4,14 +4,20 @@ export type PhotoDraft = {
   id: string
   url: string
   name: string
+  file?: File
 }
 
 export type Draft = {
   type: Listing['type']
   status: Listing['status']
+  country_id?: number
+  province_id?: number
+  city_id?: number
   city: string
   district: string
   address: string
+  currency_id?: number
+  currency: string
   lat: number
   lng: number
   title: string
@@ -58,9 +64,14 @@ export const featureOptions = [
 export const emptyDraft: Draft = {
   type: 'Appartement',
   status: 'À louer',
+  country_id: undefined,
+  province_id: undefined,
+  city_id: undefined,
   city: 'Goma',
   district: '',
   address: '',
+  currency_id: undefined,
+  currency: 'USD',
   lat: cityCoords.Goma[0],
   lng: cityCoords.Goma[1],
   title: '',

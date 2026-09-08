@@ -1,3 +1,5 @@
+import { WorldCity, WorldCountry, WorldCurrency, WorldState } from './world.types'
+
 export interface PropertyType {
   id: string
   name: string
@@ -69,12 +71,16 @@ export interface Property {
   transaction_type: 'sale' | 'rent' | 'Acheter' | 'Louer'
   price: number
   currency?: string
+  currency_id?: number
   surface_area?: number
   bedrooms?: number
   bathrooms?: number
   rooms?: number
+  country_id?: number
+  province_id?: number
+  city_id?: number
   address?: string
-  city: string
+  city?: string
   district?: string
   neighborhood?: string
   latitude?: number
@@ -84,6 +90,10 @@ export interface Property {
   is_verified?: boolean
   type?: PropertyType
   category?: PropertyCategory
+  country?: WorldCountry
+  province?: WorldState
+  city_rel?: WorldCity
+  currency_rel?: WorldCurrency
   images?: PropertyImage[]
   features?: PropertyFeature[]
   documents?: PropertyDocument[]
@@ -101,12 +111,16 @@ export interface CreatePropertyPayload {
   transaction_type: string
   price: number
   currency?: string
+  currency_id?: number
   surface_area?: number
   bedrooms?: number
   bathrooms?: number
   rooms?: number
+  country_id?: number
+  province_id?: number
+  city_id?: number
   address?: string
-  city: string
+  city?: string
   neighborhood?: string
   district?: string
   status?: string
