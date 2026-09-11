@@ -41,7 +41,7 @@ export function PublishWizard() {
         const createdProperty = await createProperty({
           title: draft.title || `Propriété à ${draft.city}`,
           description: draft.description,
-          transaction_type: draft.intent === 'Acheter' ? 'sale' : 'rent',
+          transaction_type: draft.status === 'À vendre' ? 'sale' : 'rent',
           price: Number(draft.price) || 0,
           currency: draft.currency || 'USD',
           currency_id: draft.currency_id,
