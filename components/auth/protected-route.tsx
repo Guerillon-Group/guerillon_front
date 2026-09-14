@@ -27,23 +27,24 @@ export function ProtectedRoute({
   const [mounted, setMounted] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(true)
 
-  const { isAuthenticated, isLoading, initializeAuth } = useAuthStore()
+  const { isAuthenticated, isLoading, isInitialized, initializeAuth } = useAuthStore()
 
   useEffect(() => {
     setMounted(true)
-    initializeAuth()
-  }, [initializeAuth])
+    if (!isInitialized) {
+      initializeAuth()
+    }
+  }, [isInitialized, initializeAuth])
 
   useEffect(() => {
-    if (mounted && !isLoading && !isAuthenticated && redirectToHome) {
+    if (mounted && isInitialized && !isLoading && !isAuthenticated && redirectToHome) {
       router.replace('/')
     }
-  }, [mounted, isLoading, isAuthenticated, redirectToHome, router])
+  }, [mounted, isInitialized, isLoading, isAuthenticated, redirectToHome, router])
 
-  if (!mounted || isLoading) {
+  if (!mounted || isLoading || !isInitialized) {
     return (
       <div className="flex min-h-dvh flex-col bg-background">
-        <SiteHeader />
         <main className="flex flex-1 items-center justify-center py-20">
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="relative flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -55,7 +56,6 @@ export function ProtectedRoute({
             </p>
           </div>
         </main>
-        <SiteFooter />
       </div>
     )
   }
@@ -77,7 +77,7 @@ export function ProtectedRoute({
               {title}
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              {description} Connectez-vous ou créez un compte gratuitement pour accéder à la publication de vos biens sur MBIYO.
+              {description} Connectez-vous ou créez un compte gratuitement pour accéder à votre espace MBIYO.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">

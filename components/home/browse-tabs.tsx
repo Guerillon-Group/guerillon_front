@@ -36,11 +36,11 @@ export function BrowseTabs() {
 
   return (
     <>
-      <div className="mx-auto w-full max-w-[1280px] px-4 pt-8 md:px-6">
+      <div className="mx-auto w-full max-w-[1280px] overflow-hidden px-4 pt-8 md:px-6">
         <div
           role="tablist"
           aria-label="Filtrer par type de bien"
-          className="hide-scrollbar -mx-4 flex items-center gap-1 overflow-x-auto px-4 md:mx-0 md:justify-center md:px-0"
+          className="hide-scrollbar flex items-center gap-1.5 overflow-x-auto pb-1 md:justify-center"
         >
           {tabs.map((tab) => {
             const selected = tab.id === active

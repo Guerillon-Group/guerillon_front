@@ -10,7 +10,7 @@ import { AuthModal } from '@/components/auth/auth-modal'
 import { CreateAgencyModal } from '@/components/agency/create-agency-modal'
 import { MobileBottomNav } from '@/components/mobile-bottom-nav'
 import { Brand } from '@/components/brand'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/useAuthStore'
 
@@ -29,12 +29,14 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
   const [agencyOpen, setAgencyOpen] = useState(false)
 
   const [mounted, setMounted] = useState(false)
-  const { user, isAuthenticated, initializeAuth, logout } = useAuthStore()
+  const { user, isAuthenticated, isInitialized, initializeAuth, logout } = useAuthStore()
 
   useEffect(() => {
     setMounted(true)
-    initializeAuth()
-  }, [initializeAuth])
+    if (!isInitialized) {
+      initializeAuth()
+    }
+  }, [isInitialized, initializeAuth])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -51,13 +53,6 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
 
   // Masquer les liens nécessitant une connexion si l'utilisateur n'est pas connecté
   const visibleNav = nav.filter((item) => !item.requiresAuth || isAuthenticated)
-
-  const handlePublishClick = (e: React.MouseEvent) => {
-    if (!isAuthenticated) {
-      e.preventDefault()
-      setAuthOpen(true)
-    }
-  }
 
   return (
     <>
@@ -138,18 +133,21 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
               </div>
             )}
 
-            {/* Bouton Publier une annonce : ouvre le modal si non connecté, va sur /publier si connecté */}
+            {/* Bouton Publier une annonce : redirige si connecté, ouvre le modal si non connecté */}
             {isAuthenticated ? (
-              <Button
-                nativeButton={false}
-                render={<Link href="/publier" />}
-                className="hidden h-10 gap-1.5 rounded-full px-4 md:inline-flex bg-[#16381e] text-white hover:bg-[#16381e]/90 text-xs font-bold"
+              <Link
+                href="/publier"
+                className={cn(
+                  buttonVariants({ variant: 'default' }),
+                  'hidden h-10 gap-1.5 rounded-full px-4 md:inline-flex bg-[#16381e] text-white hover:bg-[#16381e]/90 text-xs font-bold',
+                )}
               >
                 <Plus className="size-4" />
                 Publier une annonce
-              </Button>
+              </Link>
             ) : (
               <Button
+                type="button"
                 onClick={() => setAuthOpen(true)}
                 className="hidden h-10 gap-1.5 rounded-full px-4 md:inline-flex bg-[#16381e] text-white hover:bg-[#16381e]/90 text-xs font-bold"
               >
@@ -223,20 +221,31 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
                   Se déconnecter
                 </Button>
               )}
-              <Button
-                onClick={(e) => {
-                  setOpen(false)
-                  if (!isAuthenticated) {
+              {isAuthenticated ? (
+                <Link
+                  href="/publier"
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    buttonVariants({ variant: 'default' }),
+                    'mt-1 h-11 gap-1.5 rounded-full bg-[#16381e] text-white justify-center font-bold',
+                  )}
+                >
+                  <Plus className="size-4" />
+                  Publier une annonce
+                </Link>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false)
                     setAuthOpen(true)
-                  }
-                }}
-                nativeButton={isAuthenticated}
-                render={isAuthenticated ? <Link href="/publier" /> : undefined}
-                className="mt-1 h-11 gap-1.5 rounded-full bg-[#16381e] text-white"
-              >
-                <Plus className="size-4" />
-                Publier une annonce
-              </Button>
+                  }}
+                  className="mt-1 h-11 gap-1.5 rounded-full bg-[#16381e] text-[#ffffff] font-bold"
+                >
+                  <Plus className="size-4" />
+                  Publier une annonce
+                </Button>
+              )}
             </nav>
           </div>
         )}

@@ -28,7 +28,7 @@ export function HeroSearch() {
       }}
       aria-label="Rechercher un bien"
       aria-busy={pending}
-      className="relative flex w-full flex-col gap-2 rounded-2xl border border-border/80 bg-card p-3 shadow-xl shadow-black/5 transition-all duration-300 focus-within:border-primary/50 focus-within:shadow-2xl md:flex-row md:items-stretch md:gap-px md:rounded-full md:p-1.5 md:border-2"
+      className="relative flex w-full max-w-full overflow-hidden flex-col gap-2 rounded-2xl border border-border/80 bg-card p-3 shadow-xl shadow-black/5 transition-all duration-300 focus-within:border-primary/50 focus-within:shadow-2xl md:flex-row md:items-stretch md:gap-px md:rounded-full md:p-1.5 md:border-2"
     >
       {pending && (
         <span

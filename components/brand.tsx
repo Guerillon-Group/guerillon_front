@@ -32,10 +32,10 @@ export function Brand({
           priority
         />
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-col min-w-0">
         <span
           className={cn(
-            'font-display text-lg font-extrabold tracking-wider leading-none',
+            'font-display text-base sm:text-lg font-extrabold tracking-wider leading-none truncate',
             invert ? 'text-white' : 'text-[#16381e]',
           )}
         >
@@ -43,7 +43,7 @@ export function Brand({
         </span>
         <span
           className={cn(
-            'text-[10px] font-bold tracking-[0.25em] leading-tight uppercase',
+            'text-[9px] sm:text-[10px] font-bold tracking-[0.2em] sm:tracking-[0.25em] leading-tight uppercase truncate',
             invert ? 'text-[#c5a059]' : 'text-[#c5a059]',
           )}
         >

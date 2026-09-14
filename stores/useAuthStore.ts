@@ -8,6 +8,7 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitialized: boolean;
   error: string | null;
 
   // Actions
@@ -24,6 +25,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
   isAuthenticated: false,
   isLoading: true,
+  isInitialized: false,
   error: null,
 
   setAuth: (user: User, token?: string) => {
@@ -35,6 +37,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       token: token || getToken(),
       isAuthenticated: true,
       isLoading: false,
+      isInitialized: true,
       error: null,
     });
   },
@@ -46,6 +49,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       token: null,
       isAuthenticated: false,
       isLoading: false,
+      isInitialized: true,
       error: null,
     });
   },
@@ -59,20 +63,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   initializeAuth: async () => {
+    const { isAuthenticated, user, token, isInitialized } = get();
     const currentToken = getToken();
+
+    // 1. Si aucun token n'existe en localStorage
     if (!currentToken) {
-      set({ isLoading: false, isAuthenticated: false, user: null });
+      set({ isLoading: false, isAuthenticated: false, user: null, isInitialized: true });
+      return;
+    }
+
+    // 2. Si l'authentification est déjà initialisée et valide pour ce même token
+    if (isInitialized && isAuthenticated && user && token === currentToken) {
+      set({ isLoading: false });
       return;
     }
 
     set({ isLoading: true });
     try {
-      const user = await authService.me();
+      const userData = await authService.me();
       set({
-        user,
+        user: userData,
         token: currentToken,
         isAuthenticated: true,
         isLoading: false,
+        isInitialized: true,
         error: null,
       });
     } catch (err: any) {
@@ -82,6 +96,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         token: null,
         isAuthenticated: false,
         isLoading: false,
+        isInitialized: true,
         error: null,
       });
     }

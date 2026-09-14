@@ -47,7 +47,7 @@ export function ListingRail({
   }
 
   return (
-    <section className="mx-auto w-full max-w-[1280px] px-4 pt-12 md:px-6 md:pt-16">
+    <section className="mx-auto w-full max-w-[1280px] overflow-hidden px-4 pt-12 md:px-6 md:pt-16">
       <div className="flex items-end justify-between gap-6">
         <div>
           <h2 className="font-display text-2xl leading-tight font-bold tracking-tight text-foreground md:text-[30px]">
@@ -80,7 +80,7 @@ export function ListingRail({
         </div>
       </div>
 
-      <div aria-busy={loading} aria-live="polite">
+      <div aria-busy={loading} aria-live="polite" className="w-full overflow-hidden">
         {loading ? (
           <RailSkeleton count={4} />
         ) : items.length === 0 ? (
@@ -91,14 +91,14 @@ export function ListingRail({
           <ul
             ref={scroller}
             onScroll={sync}
-            className="hide-scrollbar -mx-4 mt-6 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0"
+            className="hide-scrollbar mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
           >
             {items.map((listing, i) => (
               <li
                 key={listing.slug}
                 style={{ animationDelay: `${Math.min(i, 5) * 70}ms` }}
                 className={cn(
-                  'w-[78vw] shrink-0 snap-start sm:w-[44vw] lg:w-[calc((100%-3.75rem)/4)]',
+                  'w-[80vw] max-w-[320px] shrink-0 snap-start sm:w-[44vw] sm:max-w-none lg:w-[calc((100%-3.75rem)/4)]',
                   'animate-in fill-mode-backwards duration-500 fade-in slide-in-from-bottom-4',
                 )}
               >

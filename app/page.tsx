@@ -8,7 +8,8 @@ import { HeroSearch } from '@/components/home/hero-search'
 import { Reveal } from '@/components/reveal'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { listings } from '@/lib/properties'
 
 const collections = [
@@ -71,7 +72,7 @@ export default function HomePage() {
             </p>
             <h1
               style={{ animationDelay: '90ms' }}
-              className="animate-in fill-mode-backwards mt-5 font-display text-3xl leading-[1.1] font-extrabold tracking-tight text-balance text-[#16381e] duration-700 fade-in slide-in-from-bottom-4 md:text-[46px]"
+              className="animate-in fill-mode-backwards mt-5 font-display text-2xl sm:text-3xl leading-[1.1] font-extrabold tracking-tight text-balance text-[#16381e] duration-700 fade-in slide-in-from-bottom-4 md:text-[46px]"
             >
               L&apos;Immobilier d&apos;Exception en Afrique.
             </h1>
@@ -139,7 +140,7 @@ export default function HomePage() {
         </section>
 
         {/* Collections */}
-        <section className="mx-auto w-full max-w-[1280px] px-4 pt-14 md:px-6 md:pt-20">
+        <section className="mx-auto w-full max-w-[1280px] overflow-hidden px-4 pt-14 md:px-6 md:pt-20">
           <div className="flex items-end justify-between gap-6">
             <div>
               <h2 className="font-display text-2xl leading-tight font-bold tracking-tight text-foreground md:text-[30px]">
@@ -158,13 +159,13 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <ul className="hide-scrollbar -mx-4 mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0">
+          <ul className="hide-scrollbar mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 md:grid md:grid-cols-4 md:overflow-visible">
             {collections.map((collection, i) => (
               <Reveal
                 key={collection.name}
                 as="li"
                 delay={i * 80}
-                className="w-[240px] shrink-0 snap-start md:w-auto"
+                className="w-[220px] shrink-0 snap-start md:w-auto"
               >
                 <Link
                   href="/carte"
@@ -239,15 +240,16 @@ export default function HomePage() {
                 Publiez en dix minutes, recevez vos premières demandes sous 48 h. Vérification du titre incluse.
               </p>
             </div>
-            <Button
-              variant="secondary"
-              nativeButton={false}
-              render={<Link href="/publier" />}
-              className="group h-12 shrink-0 gap-2 rounded-full px-6"
+            <Link
+              href="/publier"
+              className={cn(
+                buttonVariants({ variant: 'secondary' }),
+                'group h-12 shrink-0 gap-2 rounded-full px-6 font-semibold',
+              )}
             >
               Commencer
               <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </Button>
+            </Link>
           </Reveal>
         </section>
       </main>
