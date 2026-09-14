@@ -4,21 +4,28 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
+  AlertCircle,
+  ArrowRight,
   ArrowUpRight,
   BadgeCheck,
   Building2,
   Calendar,
   CheckCircle2,
   Clock,
+  CreditCard,
+  Download,
   Eye,
+  FileCheck,
   FileText,
   Filter,
   Heart,
   Home,
   MessageSquare,
   Plus,
+  RefreshCw,
   Search,
   ShieldCheck,
+  Sparkles,
   TrendingUp,
   User,
   Users,
@@ -30,6 +37,9 @@ import { SiteHeader } from '@/components/site-header'
 import { Button } from '@/components/ui/button'
 import { listings, formatPrice } from '@/lib/properties'
 import { cn } from '@/lib/utils'
+
+import { OwnerKycPanel } from '@/components/dashboard/owner-kyc-panel'
+import { useDashboardSummary } from '@/mutations/useDashboardMutations'
 
 export type UserRole = 'agent' | 'proprietaire' | 'acheteur'
 
@@ -268,11 +278,41 @@ const roleData: Record<UserRole, RoleConfig> = {
 
 export function DashboardView() {
   const [activeRole, setActiveRole] = useState<UserRole>('agent')
-  const [selectedTab, setSelectedTab] = useState<'apercu' | 'biens' | 'activites'>('apercu')
+  const [selectedTab, setSelectedTab] = useState<'apercu' | 'biens' | 'kyc' | 'activites'>('apercu')
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null)
+  const [payoutRequested, setPayoutRequested] = useState<boolean>(false)
 
+  const { data: apiSummary, loading: summaryLoading } = useDashboardSummary(activeRole)
   const current = roleData[activeRole]
-  const maxValue = Math.max(...current.chartData.map((d) => d.value))
+
+  const tabs = [
+    { id: 'apercu', label: 'Vue d\'ensemble' },
+    { id: 'biens', label: activeRole === 'acheteur' ? 'Biens enregistrés' : 'Portefeuille de Biens' },
+    ...(activeRole === 'proprietaire' ? [{ id: 'kyc', label: 'Espace KYC & Demandes' }] : []),
+    { id: 'activites', label: 'Journal d\'activité' },
+  ]
+
+  const rawMetrics = apiSummary?.metrics || current.metrics
+  const displayMetrics = rawMetrics.map((m) => {
+    let IconComponent = Eye
+    const titleLower = m.title.toLowerCase()
+    if (titleLower.includes('vue') || titleLower.includes('consultation')) IconComponent = Eye
+    else if (titleLower.includes('bien') || titleLower.includes('mandat') || titleLower.includes('sauvegard')) IconComponent = Building2
+    else if (titleLower.includes('demande') || titleLower.includes('contact') || titleLower.includes('offre') || titleLower.includes('alerte')) IconComponent = MessageSquare
+    else if (titleLower.includes('commission') || titleLower.includes('valeur') || titleLower.includes('budget') || titleLower.includes('solde')) IconComponent = Wallet
+    else if ('icon' in m && (m as any).icon) IconComponent = (m as any).icon
+
+    return {
+      title: m.title,
+      value: m.value,
+      change: m.change,
+      icon: IconComponent,
+    }
+  })
+
+  const chartPoints = apiSummary?.chartData || current.chartData
+  const chartMaxValue = Math.max(...chartPoints.map((d) => d.value), 1)
+  const activitiesList = apiSummary?.recentActivities || current.activities
 
   return (
     <div className="flex min-h-dvh flex-col bg-[#f8faf7]">
@@ -300,6 +340,15 @@ export function DashboardView() {
                   <BadgeCheck className="size-3.5 fill-[#c5a059] text-white" />
                   {current.badge}
                 </span>
+                {summaryLoading ? (
+                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground ml-2">
+                    <RefreshCw className="size-3 animate-spin text-[#c5a059]" /> Chargement API...
+                  </span>
+                ) : apiSummary ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-500/20 ml-2">
+                    <span className="size-1.5 rounded-full bg-emerald-600 animate-pulse" /> Live API
+                  </span>
+                ) : null}
               </div>
               <p className="text-xs font-medium text-muted-foreground mt-0.5">{current.subtitle}</p>
             </div>
@@ -316,7 +365,14 @@ export function DashboardView() {
                 <button
                   key={r}
                   type="button"
-                  onClick={() => setActiveRole(r)}
+                  onClick={() => {
+                    setActiveRole(r)
+                    if (r === 'proprietaire') {
+                      setSelectedTab('kyc')
+                    } else if (selectedTab === 'kyc') {
+                      setSelectedTab('apercu')
+                    }
+                  }}
                   className={cn(
                     'rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-200 capitalize',
                     active
@@ -334,11 +390,7 @@ export function DashboardView() {
         {/* Navigation Tabs */}
         <div className="mt-8 flex border-b border-border/80">
           <div className="flex gap-2">
-            {[
-              { id: 'apercu', label: 'Vue d\'ensemble' },
-              { id: 'biens', label: activeRole === 'acheteur' ? 'Biens enregistrés' : 'Portefeuille de Biens' },
-              { id: 'activites', label: 'Journal d\'activité' },
-            ].map((tab) => {
+            {tabs.map((tab) => {
               const active = selectedTab === tab.id
               return (
                 <button
@@ -372,12 +424,67 @@ export function DashboardView() {
           </div>
         </div>
 
-        {/* TAB 1: APERÇU (METRICS + MINIMALIST GRAPH + RECENT ACTIVITIES) */}
+        {/* TAB 1: APERÇU (SUMMARY + QUICK ACTIONS + FINANCIAL OVERVIEW + URGENT TASKS + GRAPH + RECENT ACTIVITIES) */}
         {selectedTab === 'apercu' && (
           <div className="mt-8 flex flex-col gap-8">
+            {/* Quick Actions Ribbon Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#16381e]/15 bg-white p-4 shadow-xs">
+              <div className="flex items-center gap-2 text-xs font-bold text-[#16381e]">
+                <Sparkles className="size-4 text-[#c5a059]" />
+                <span>Actions Rapides Dashboard :</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  nativeButton={false}
+                  render={<Link href="/publier" />}
+                  size="sm"
+                  className="gap-1.5 rounded-xl bg-[#16381e] text-white hover:bg-[#16381e]/90 text-xs font-bold"
+                >
+                  <Plus className="size-3.5" />
+                  Publier un Bien
+                </Button>
+
+                {activeRole === 'proprietaire' && (
+                  <>
+                    <Button
+                      type="button"
+                      onClick={() => setSelectedTab('kyc')}
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5 rounded-xl border-[#16381e]/30 text-[#16381e] hover:bg-[#16381e]/5 text-xs font-bold"
+                    >
+                      <ShieldCheck className="size-3.5 text-[#c5a059]" />
+                      Espace KYC & RIB
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => setSelectedTab('kyc')}
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5 rounded-xl border-[#16381e]/30 text-[#16381e] hover:bg-[#16381e]/5 text-xs font-bold"
+                    >
+                      <FileText className="size-3.5" />
+                      Demander un Mandat
+                    </Button>
+                  </>
+                )}
+
+                <Button
+                  type="button"
+                  onClick={() => alert('Téléchargement du rapport de synthèse PDF en cours...')}
+                  size="sm"
+                  variant="ghost"
+                  className="gap-1.5 rounded-xl text-muted-foreground hover:text-foreground text-xs font-semibold"
+                >
+                  <Download className="size-3.5" />
+                  Exporter Synthèse PDF
+                </Button>
+              </div>
+            </div>
+
             {/* Key Metrics Grid */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {current.metrics.map((m) => {
+              {displayMetrics.map((m) => {
                 const Icon = m.icon
                 return (
                   <div
@@ -406,6 +513,132 @@ export function DashboardView() {
               })}
             </div>
 
+            {/* Financial Overview & Urgent Tasks Grid */}
+            <div className="grid gap-6 lg:grid-cols-3">
+              {/* Card 1: Financial & Payout Summary */}
+              <div className="flex flex-col justify-between rounded-3xl border border-[#16381e]/15 bg-gradient-to-br from-white via-[#16381e]/5 to-white p-6 shadow-xs lg:col-span-2">
+                <div>
+                  <div className="flex items-center justify-between border-b border-border/60 pb-4">
+                    <div className="flex items-center gap-2.5">
+                      <span className="flex size-10 items-center justify-center rounded-2xl bg-[#16381e] text-white">
+                        <Wallet className="size-5" />
+                      </span>
+                      <div>
+                        <h3 className="font-display text-base font-bold text-[#16381e]">Synthèse Financière & Versements</h3>
+                        <p className="text-xs text-muted-foreground">Suivi des loyers, commissions et avoirs vérifiés MBIYO</p>
+                      </div>
+                    </div>
+                    <span className="rounded-full bg-[#16381e]/10 px-3 py-1 text-xs font-bold text-[#16381e]">
+                      {activeRole === 'proprietaire' ? 'Compte Bailleur' : activeRole === 'agent' ? 'Compte Agent' : 'Compte Acheteur'}
+                    </span>
+                  </div>
+
+                  <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                    <div className="rounded-2xl border border-border/60 bg-white p-4">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                        {activeRole === 'acheteur' ? 'Budget Pré-approuvé' : 'Solde Disponible'}
+                      </span>
+                      <p className="mt-1 font-display text-xl font-extrabold text-[#16381e]">
+                        {apiSummary?.financialOverview?.available_balance || apiSummary?.financialOverview?.preapproved_budget || '$12,450.00'}
+                      </p>
+                      <span className="mt-1 block text-[10px] text-emerald-700 font-semibold">Prêt pour retrait instantané</span>
+                    </div>
+
+                    <div className="rounded-2xl border border-border/60 bg-white p-4">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                        {activeRole === 'acheteur' ? 'Acomptes Engagés' : 'Versements en Attente'}
+                      </span>
+                      <p className="mt-1 font-display text-xl font-extrabold text-[#c5a059]">
+                        {apiSummary?.financialOverview?.pending_payouts || apiSummary?.financialOverview?.committed_deposits || '$3,200.00'}
+                      </p>
+                      <span className="mt-1 block text-[10px] text-muted-foreground">Validation sous 48h</span>
+                    </div>
+
+                    <div className="rounded-2xl border border-border/60 bg-white p-4">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Prochain Virement
+                      </span>
+                      <p className="mt-1 text-sm font-bold text-[#16381e]">
+                        {apiSummary?.financialOverview?.next_payout_date || '25 Septembre 2026'}
+                      </p>
+                      <span className="mt-1 block text-[10px] text-muted-foreground">RIB Certifié MBIYO</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
+                  <span className="text-xs text-muted-foreground">
+                    Garantie bancaire & séquestre notarié intégrés
+                  </span>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setPayoutRequested(true)
+                      setTimeout(() => setPayoutRequested(false), 3000)
+                    }}
+                    disabled={payoutRequested}
+                    className="gap-2 rounded-xl bg-[#16381e] text-white hover:bg-[#16381e]/90 text-xs font-bold"
+                  >
+                    <CreditCard className="size-4 text-[#c5a059]" />
+                    {payoutRequested ? 'Demande envoyée !' : 'Demander un Virement Instantané'}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Card 2: Pending Urgent Tasks */}
+              <div className="flex flex-col justify-between rounded-3xl border border-border/80 bg-white p-6 shadow-xs">
+                <div>
+                  <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                    <h3 className="font-display text-base font-bold text-[#16381e]">Actions Urgent</h3>
+                    <span className="flex size-6 items-center justify-center rounded-full bg-[#c5a059]/20 text-xs font-bold text-[#16381e]">
+                      {apiSummary?.pendingTasks?.length || 2}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 flex flex-col gap-3">
+                    {(apiSummary?.pendingTasks || [
+                      { id: 't1', title: 'Vérification Titre Foncier N° 4092', type: 'kyc', priority: 'high', dueDate: '18 Sept 2026' },
+                      { id: 't2', title: 'Confirmation RIB pour virement', type: 'bank', priority: 'medium', dueDate: '20 Sept 2026' },
+                    ]).map((task) => (
+                      <div key={task.id} className="flex flex-col gap-2 rounded-2xl border border-border/60 bg-[#f8faf7] p-3.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-semibold text-[#16381e]">{task.title}</span>
+                          <span className={cn(
+                            'rounded-full px-2 py-0.5 text-[10px] font-bold',
+                            task.priority === 'high' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
+                          )}>
+                            {task.priority === 'high' ? 'Priorité Haute' : 'Moyenne'}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-1">
+                          <span className="flex items-center gap-1">
+                            <Clock className="size-3 text-[#c5a059]" /> Échéance : {task.dueDate}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedTab('kyc')}
+                            className="font-bold text-[#16381e] hover:underline"
+                          >
+                            Traiter →
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-4 border-t border-border/60 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTab('kyc')}
+                    className="w-full text-center text-xs font-bold text-[#16381e] hover:underline"
+                  >
+                    Voir toutes les démarches KYC & Mandats →
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Minimalist Interactive Area Chart */}
             <div className="rounded-3xl border border-border/80 bg-white p-6 shadow-xs md:p-8">
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -414,7 +647,7 @@ export function DashboardView() {
                     {activeRole === 'agent'
                       ? 'Performance des Consultations & Demandes'
                       : activeRole === 'proprietaire'
-                        ? 'Fréquentation des Annonces'
+                        ? 'Fréquentation des Annonces & Engagement'
                         : 'Évolution du Marché Immobiler'}
                   </h2>
                   <p className="text-xs text-muted-foreground">
@@ -446,10 +679,10 @@ export function DashboardView() {
 
                   {/* Area Fill */}
                   <path
-                    d={`M 0 180 ${current.chartData
+                    d={`M 0 180 ${chartPoints
                       .map((d, i) => {
-                        const x = (i / (current.chartData.length - 1)) * 700
-                        const y = 160 - (d.value / maxValue) * 130
+                        const x = (i / (chartPoints.length - 1)) * 700
+                        const y = 160 - (d.value / chartMaxValue) * 130
                         return `L ${x} ${y}`
                       })
                       .join(' ')} L 700 180 Z`}
@@ -458,10 +691,10 @@ export function DashboardView() {
 
                   {/* Primary Line */}
                   <path
-                    d={`M ${current.chartData
+                    d={`M ${chartPoints
                       .map((d, i) => {
-                        const x = (i / (current.chartData.length - 1)) * 700
-                        const y = 160 - (d.value / maxValue) * 130
+                        const x = (i / (chartPoints.length - 1)) * 700
+                        const y = 160 - (d.value / chartMaxValue) * 130
                         return `${x} ${y}`
                       })
                       .join(' L ')}`}
@@ -474,10 +707,10 @@ export function DashboardView() {
 
                   {/* Secondary Line (Gold) */}
                   <path
-                    d={`M ${current.chartData
+                    d={`M ${chartPoints
                       .map((d, i) => {
-                        const x = (i / (current.chartData.length - 1)) * 700
-                        const y = 170 - (d.secondary / maxValue) * 350
+                        const x = (i / (chartPoints.length - 1)) * 700
+                        const y = 170 - (d.secondary / chartMaxValue) * 350
                         return `${x} ${y}`
                       })
                       .join(' L ')}`}
@@ -489,9 +722,9 @@ export function DashboardView() {
                   />
 
                   {/* Interactive Points */}
-                  {current.chartData.map((d, i) => {
-                    const x = (i / (current.chartData.length - 1)) * 700
-                    const y = 160 - (d.value / maxValue) * 130
+                  {chartPoints.map((d, i) => {
+                    const x = (i / (chartPoints.length - 1)) * 700
+                    const y = 160 - (d.value / chartMaxValue) * 130
                     const hovered = hoveredPoint === i
                     return (
                       <g key={d.label} onMouseEnter={() => setHoveredPoint(i)} onMouseLeave={() => setHoveredPoint(null)}>
@@ -511,7 +744,7 @@ export function DashboardView() {
 
                 {/* X Axis Labels */}
                 <div className="mt-3 flex justify-between text-xs font-semibold text-muted-foreground">
-                  {current.chartData.map((d) => (
+                  {chartPoints.map((d) => (
                     <span key={d.label}>{d.label}</span>
                   ))}
                 </div>
@@ -521,12 +754,14 @@ export function DashboardView() {
             {/* Recent Activity List */}
             <div className="rounded-3xl border border-border/80 bg-white p-6 shadow-xs">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-base font-bold text-[#16381e]">Activité Récente</h3>
-                <span className="text-xs font-semibold text-muted-foreground">Temps Réel</span>
+                <h3 className="font-display text-base font-bold text-[#16381e]">Activité Récente en Temps Réel</h3>
+                <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                  <span className="size-2 rounded-full bg-emerald-500 animate-pulse" /> Direct MBIYO
+                </span>
               </div>
 
               <div className="mt-4 flex flex-col divide-y divide-border/60">
-                {current.activities.map((act) => (
+                {activitiesList.map((act) => (
                   <div key={act.id} className="flex items-start justify-between gap-4 py-4 first:pt-2 last:pb-2">
                     <div className="flex items-start gap-3.5">
                       <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#16381e]/10 text-[#16381e]">
@@ -597,7 +832,14 @@ export function DashboardView() {
           </div>
         )}
 
-        {/* TAB 3: JOURNAL D'ACTIVITÉ */}
+        {/* TAB 3: ESPACE KYC & SERVICES PROPRIÉTAIRE */}
+        {selectedTab === 'kyc' && (
+          <div className="mt-8">
+            <OwnerKycPanel />
+          </div>
+        )}
+
+        {/* TAB 4: JOURNAL D'ACTIVITÉ */}
         {selectedTab === 'activites' && (
           <div className="mt-8 rounded-3xl border border-border/80 bg-white p-6">
             <h3 className="font-display text-lg font-bold text-[#16381e]">Historique Complet des Actions</h3>
