@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+
+import { ProtectedRoute } from '@/components/auth/protected-route'
 import { DashboardView } from '@/components/dashboard/dashboard-view'
 
 export const metadata: Metadata = {
@@ -8,5 +10,12 @@ export const metadata: Metadata = {
 }
 
 export default function DashboardPage() {
-  return <DashboardView />
+  return (
+    <ProtectedRoute
+      title="Tableau de bord"
+      description="Connectez-vous pour accéder à votre espace de gestion, vos statistiques, vos mandats et vos favoris."
+    >
+      <DashboardView />
+    </ProtectedRoute>
+  )
 }

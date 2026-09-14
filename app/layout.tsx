@@ -1,10 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Hanken_Grotesk, Inter } from 'next/font/google'
 import './globals.css'
-
-const _inter = Inter({ subsets: ['latin'] })
-const _hanken = Hanken_Grotesk({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Real Estate — Immobilier premium en RDC',

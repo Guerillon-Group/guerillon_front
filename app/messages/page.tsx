@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import { ProtectedRoute } from '@/components/auth/protected-route'
 import { MessagingCenter } from '@/components/messages/messaging-center'
 import { SiteHeader } from '@/components/site-header'
 
@@ -10,11 +11,16 @@ export const metadata: Metadata = {
 
 export default function MessagesPage() {
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
-      <SiteHeader />
-      <main className="flex-1">
-        <MessagingCenter />
-      </main>
-    </div>
+    <ProtectedRoute
+      title="Messagerie Privée"
+      description="Connectez-vous pour échanger directement avec les propriétaires, agents immobiliers et acheteurs."
+    >
+      <div className="flex min-h-dvh flex-col bg-background">
+        <SiteHeader />
+        <main className="flex-1">
+          <MessagingCenter />
+        </main>
+      </div>
+    </ProtectedRoute>
   )
 }

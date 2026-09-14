@@ -126,7 +126,7 @@ export function applyFilters(pool: Listing[], f: Filters) {
     if (f.baths > 0 && l.baths < f.baths) return false
     if (l.surface < f.surfaceMin) return false
     if (f.amenities.some((a) => !l.amenities.includes(a))) return false
-    if (f.access.some((a) => !l.access.includes(a))) return false
+    if (f.access.some((a) => !l.access?.includes(a))) return false
     if (f.labels.includes('verifie') && !l.verified) return false
     if (f.labels.includes('exclusivite') && !l.badges.includes('Exclusivité')) return false
 

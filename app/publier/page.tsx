@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PublishWizard } from '@/components/publish/publish-wizard'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
@@ -12,12 +13,17 @@ export const metadata: Metadata = {
 
 export default function PublishPage() {
   return (
-    <div className="flex min-h-dvh flex-col">
-      <SiteHeader />
-      <main className="flex-1">
-        <PublishWizard />
-      </main>
-      <SiteFooter />
-    </div>
+    <ProtectedRoute
+      title="Publier une annonce"
+      description="Connectez-vous pour pouvoir publier et soumettre une annonce immobilière sur la plateforme MBIYO."
+    >
+      <div className="flex min-h-dvh flex-col">
+        <SiteHeader />
+        <main className="flex-1">
+          <PublishWizard />
+        </main>
+        <SiteFooter />
+      </div>
+    </ProtectedRoute>
   )
 }
