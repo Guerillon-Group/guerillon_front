@@ -17,8 +17,8 @@ import { useAuthStore } from '@/stores/useAuthStore'
 const nav = [
   { href: '/', label: 'Acheter' },
   { href: '/carte', label: 'Explorer la carte' },
-  { href: '/messages', label: 'Messages', badge: '1' },
-  { href: '/tableau-de-bord', label: 'Tableau de bord' },
+  { href: '/messages', label: 'Messages', badge: '1', requiresAuth: true },
+  { href: '/tableau-de-bord', label: 'Tableau de bord', requiresAuth: true },
 ]
 
 export function SiteHeader({ floating = false }: { floating?: boolean }) {
@@ -49,6 +49,16 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
 
   const solid = scrolled || !floating
 
+  // Masquer les liens nécessitant une connexion si l'utilisateur n'est pas connecté
+  const visibleNav = nav.filter((item) => !item.requiresAuth || isAuthenticated)
+
+  const handlePublishClick = (e: React.MouseEvent) => {
+    if (!isAuthenticated) {
+      e.preventDefault()
+      setAuthOpen(true)
+    }
+  }
+
   return (
     <>
       <header
@@ -61,7 +71,7 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
           <Brand />
 
           <nav aria-label="Navigation principale" className="hidden items-center gap-1 md:flex">
-            {nav.map((item) => {
+            {visibleNav.map((item) => {
               const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
               return (
                 <Link
@@ -128,28 +138,41 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
               </div>
             )}
 
-            <Button
-              nativeButton={false}
-              render={<Link href="/publier" />}
-              className="hidden h-10 gap-1.5 rounded-full px-4 md:inline-flex bg-[#16381e] text-white hover:bg-[#16381e]/90 text-xs font-bold"
-            >
-              <Plus className="size-4" />
-              Publier une annonce
-            </Button>
+            {/* Bouton Publier une annonce : ouvre le modal si non connecté, va sur /publier si connecté */}
+            {isAuthenticated ? (
+              <Button
+                nativeButton={false}
+                render={<Link href="/publier" />}
+                className="hidden h-10 gap-1.5 rounded-full px-4 md:inline-flex bg-[#16381e] text-white hover:bg-[#16381e]/90 text-xs font-bold"
+              >
+                <Plus className="size-4" />
+                Publier une annonce
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setAuthOpen(true)}
+                className="hidden h-10 gap-1.5 rounded-full px-4 md:inline-flex bg-[#16381e] text-white hover:bg-[#16381e]/90 text-xs font-bold"
+              >
+                <Plus className="size-4" />
+                Publier une annonce
+              </Button>
+            )}
 
-            <Link
-              href="/tableau-de-bord"
-              className="hidden size-10 shrink-0 overflow-hidden rounded-full border border-border md:block"
-              aria-label="Mon compte"
-            >
-              <Image
-                src="/images/agent-portrait.png"
-                alt="Portrait de Sarah Mukendi"
-                width={80}
-                height={80}
-                className="size-full object-cover"
-              />
-            </Link>
+            {isAuthenticated && (
+              <Link
+                href="/tableau-de-bord"
+                className="hidden size-10 shrink-0 overflow-hidden rounded-full border border-border md:block"
+                aria-label="Mon compte"
+              >
+                <Image
+                  src="/images/agent-portrait.png"
+                  alt="Portrait de Sarah Mukendi"
+                  width={80}
+                  height={80}
+                  className="size-full object-cover"
+                />
+              </Link>
+            )}
 
             <Button
               variant="ghost"
@@ -167,7 +190,7 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
         {open && (
           <div className="glass-panel border-t border-border md:hidden">
             <nav aria-label="Navigation mobile" className="mx-auto flex max-w-[1280px] flex-col gap-1 px-4 py-4">
-              {nav.map((item) => (
+              {visibleNav.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -176,20 +199,39 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
                   {item.label}
                 </Link>
               ))}
+              {!isAuthenticated ? (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setOpen(false)
+                    setAuthOpen(true)
+                  }}
+                  className="mt-2 h-11 gap-1.5 rounded-full font-bold"
+                >
+                  <LogIn className="size-4 text-[#c5a059]" />
+                  Se connecter
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setOpen(false)
+                    logout()
+                  }}
+                  className="mt-2 h-11 text-red-600 font-bold justify-start px-3"
+                >
+                  Se déconnecter
+                </Button>
+              )}
               <Button
-                variant="outline"
-                onClick={() => {
+                onClick={(e) => {
                   setOpen(false)
-                  setAuthOpen(true)
+                  if (!isAuthenticated) {
+                    setAuthOpen(true)
+                  }
                 }}
-                className="mt-2 h-11 gap-1.5 rounded-full font-bold"
-              >
-                <LogIn className="size-4 text-[#c5a059]" />
-                Se connecter
-              </Button>
-              <Button
-                nativeButton={false}
-                render={<Link href="/publier" />}
+                nativeButton={isAuthenticated}
+                render={isAuthenticated ? <Link href="/publier" /> : undefined}
                 className="mt-1 h-11 gap-1.5 rounded-full bg-[#16381e] text-white"
               >
                 <Plus className="size-4" />

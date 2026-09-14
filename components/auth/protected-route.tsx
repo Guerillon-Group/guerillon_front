@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Lock, LogIn, ShieldAlert, Sparkles } from 'lucide-react'
 
 import { AuthModal } from '@/components/auth/auth-modal'
@@ -13,15 +14,18 @@ interface ProtectedRouteProps {
   children: React.ReactNode
   title?: string
   description?: string
+  redirectToHome?: boolean
 }
 
 export function ProtectedRoute({
   children,
   title = 'Connexion requise',
   description = 'Cette page est réservée aux utilisateurs connectés sur MBIYO REAL-ESTATE.',
+  redirectToHome = false,
 }: ProtectedRouteProps) {
+  const router = useRouter()
   const [mounted, setMounted] = useState(false)
-  const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [authModalOpen, setAuthModalOpen] = useState(true)
 
   const { isAuthenticated, isLoading, initializeAuth } = useAuthStore()
 
@@ -29,6 +33,12 @@ export function ProtectedRoute({
     setMounted(true)
     initializeAuth()
   }, [initializeAuth])
+
+  useEffect(() => {
+    if (mounted && !isLoading && !isAuthenticated && redirectToHome) {
+      router.replace('/')
+    }
+  }, [mounted, isLoading, isAuthenticated, redirectToHome, router])
 
   if (!mounted || isLoading) {
     return (
@@ -51,6 +61,10 @@ export function ProtectedRoute({
   }
 
   if (!isAuthenticated) {
+    if (redirectToHome) {
+      return null
+    }
+
     return (
       <div className="flex min-h-dvh flex-col bg-background">
         <SiteHeader />
@@ -63,7 +77,7 @@ export function ProtectedRoute({
               {title}
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              {description} Connectez-vous ou créez un compte gratuitement pour accéder à vos messages, publier ou gérer vos biens.
+              {description} Connectez-vous ou créez un compte gratuitement pour accéder à la publication de vos biens sur MBIYO.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">

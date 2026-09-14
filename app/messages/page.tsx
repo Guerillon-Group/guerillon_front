@@ -11,10 +11,7 @@ export const metadata: Metadata = {
 
 export default function MessagesPage() {
   return (
-    <ProtectedRoute
-      title="Messagerie Privée"
-      description="Connectez-vous pour échanger directement avec les propriétaires, agents immobiliers et acheteurs."
-    >
+    <ProtectedRoute redirectToHome={true}>
       <div className="flex min-h-dvh flex-col bg-background">
         <SiteHeader />
         <main className="flex-1">

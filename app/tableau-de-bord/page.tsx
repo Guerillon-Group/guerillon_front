@@ -11,10 +11,7 @@ export const metadata: Metadata = {
 
 export default function DashboardPage() {
   return (
-    <ProtectedRoute
-      title="Tableau de bord"
-      description="Connectez-vous pour accéder à votre espace de gestion, vos statistiques, vos mandats et vos favoris."
-    >
+    <ProtectedRoute redirectToHome={true}>
       <DashboardView />
     </ProtectedRoute>
   )

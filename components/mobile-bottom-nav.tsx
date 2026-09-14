@@ -15,12 +15,13 @@ export type MobileBottomNavProps = {
 export function MobileBottomNav({ onOpenAuth }: MobileBottomNavProps) {
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
-  const { isAuthenticated, user } = useAuthStore()
+  const { isAuthenticated } = useAuthStore()
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  // Si l'utilisateur n'est pas connecté, on masque complètement Messages et Tableau de bord (Espace)
   const navItems = [
     {
       href: '/',
@@ -39,18 +40,21 @@ export function MobileBottomNav({ onOpenAuth }: MobileBottomNavProps) {
       icon: Plus,
       isAction: true,
     },
-    {
-      href: '/messages',
-      label: 'Messages',
-      icon: MessageSquare,
-      badge: '1',
-    },
-    {
-      href: '/tableau-de-bord',
-      label: isAuthenticated ? 'Espace' : 'Connexion',
-      icon: User,
-      requiresAuth: true,
-    },
+    ...(isAuthenticated
+      ? [
+          {
+            href: '/messages',
+            label: 'Messages',
+            icon: MessageSquare,
+            badge: '1',
+          },
+          {
+            href: '/tableau-de-bord',
+            label: 'Espace',
+            icon: User,
+          },
+        ]
+      : []),
   ]
 
   if (!mounted) return null
@@ -68,6 +72,24 @@ export function MobileBottomNav({ onOpenAuth }: MobileBottomNavProps) {
             : item.href !== '/' && pathname.startsWith(item.href)
 
           if (item.isAction) {
+            if (!isAuthenticated) {
+              return (
+                <button
+                  key={item.href}
+                  type="button"
+                  onClick={onOpenAuth}
+                  className="group relative -top-3 flex flex-col items-center justify-center cursor-pointer"
+                >
+                  <div className="flex size-13 items-center justify-center rounded-full bg-[#16381e] text-[#c5a059] shadow-lg shadow-[#16381e]/30 ring-4 ring-white transition-all duration-200 group-active:scale-95 group-hover:bg-[#16381e]/90">
+                    <Plus className="size-6 stroke-[2.5]" />
+                  </div>
+                  <span className="mt-0.5 text-[10px] font-extrabold text-[#16381e]">
+                    {item.label}
+                  </span>
+                </button>
+              )
+            }
+
             return (
               <Link
                 key={item.href}
@@ -81,22 +103,6 @@ export function MobileBottomNav({ onOpenAuth }: MobileBottomNavProps) {
                   {item.label}
                 </span>
               </Link>
-            )
-          }
-
-          if (item.requiresAuth && !isAuthenticated) {
-            return (
-              <button
-                key={item.href}
-                type="button"
-                onClick={onOpenAuth}
-                className="flex flex-col items-center justify-center gap-0.5 py-1 px-3 text-muted-foreground transition-colors active:scale-95"
-              >
-                <item.icon className="size-5 text-[#16381e]/70" />
-                <span className="text-[10px] font-medium text-muted-foreground">
-                  {item.label}
-                </span>
-              </button>
             )
           }
 
