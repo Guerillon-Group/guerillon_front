@@ -33,6 +33,7 @@ export const propertyService = {
     if (filters.q) params.set('q', filters.q)
     if (filters.city) params.set('city', filters.city)
     if (filters.intent) params.set('intent', filters.intent)
+    if (filters.my_properties) params.set('my_properties', '1')
     if (filters.page) params.set('page', filters.page.toString())
     if (filters.per_page) params.set('per_page', filters.per_page.toString())
 

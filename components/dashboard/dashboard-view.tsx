@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -36,10 +36,13 @@ import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
 import { Button } from '@/components/ui/button'
 import { listings, formatPrice } from '@/lib/properties'
-import { cn } from '@/lib/utils'
+import { cn, resolveImageUrl } from '@/lib/utils'
 
 import { OwnerKycPanel } from '@/components/dashboard/owner-kyc-panel'
 import { useDashboardSummary } from '@/mutations/useDashboardMutations'
+import { useAuthStore } from '@/stores/useAuthStore'
+import { propertyService } from '@/services/property.service'
+import { Property } from '@/types/property.types'
 
 export type UserRole = 'agent' | 'proprietaire' | 'acheteur'
 
@@ -277,13 +280,67 @@ const roleData: Record<UserRole, RoleConfig> = {
 }
 
 export function DashboardView() {
+  const { user, initializeAuth } = useAuthStore()
   const [activeRole, setActiveRole] = useState<UserRole>('agent')
   const [selectedTab, setSelectedTab] = useState<'apercu' | 'biens' | 'kyc' | 'activites'>('apercu')
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null)
   const [payoutRequested, setPayoutRequested] = useState<boolean>(false)
 
+  useEffect(() => {
+    initializeAuth()
+  }, [initializeAuth])
+
+  useEffect(() => {
+    if (user?.role) {
+      const r = user.role.toLowerCase()
+      if (r.includes('owner') || r.includes('proprio') || r.includes('bailleur')) {
+        setActiveRole('proprietaire')
+      } else if (r.includes('agency') || r.includes('agent')) {
+        setActiveRole('agent')
+      } else if (r.includes('client') || r.includes('buyer') || r.includes('acheteur')) {
+        setActiveRole('acheteur')
+      }
+    }
+  }, [user?.role])
+
+  const [userProperties, setUserProperties] = useState<Property[]>([])
+  const [loadingProperties, setLoadingProperties] = useState<boolean>(false)
+
+  useEffect(() => {
+    if (selectedTab === 'biens') {
+      setLoadingProperties(true)
+      propertyService
+        .getProperties({ my_properties: true })
+        .then((res) => {
+          if (res.data?.data) {
+            setUserProperties(res.data.data)
+          }
+        })
+        .catch((err) => {
+          console.warn('Failed to load user properties:', err)
+        })
+        .finally(() => {
+          setLoadingProperties(false)
+        })
+    }
+  }, [selectedTab, user?.id])
+
   const { data: apiSummary, loading: summaryLoading } = useDashboardSummary(activeRole)
   const current = roleData[activeRole]
+
+  // User Header Bindings
+  const userName = user?.name || current.name
+  const userAvatar = user?.avatar || current.avatar
+  const userSubtitle = user?.email
+    ? `${user.email}${user.phone ? ` • ${user.phone}` : ''}`
+    : current.subtitle
+  const userBadge = user
+    ? user.role === 'owner' || user.role === 'proprietaire'
+      ? 'Propriétaire Vérifié'
+      : user.role === 'agency' || user.role === 'agent'
+        ? 'Agent Certifié'
+        : 'Membre MBIYO'
+    : current.badge
 
   const tabs = [
     { id: 'apercu', label: 'Vue d\'ensemble' },
@@ -324,8 +381,8 @@ export function DashboardView() {
           <div className="flex items-center gap-4">
             <div className="relative size-14 overflow-hidden rounded-2xl border-2 border-[#16381e]/20 bg-white p-0.5 shadow-sm">
               <Image
-                src={current.avatar}
-                alt={current.name}
+                src={userAvatar}
+                alt={userName}
                 width={80}
                 height={80}
                 className="size-full rounded-[14px] object-cover"
@@ -334,11 +391,11 @@ export function DashboardView() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-display text-2xl font-extrabold tracking-tight text-[#16381e]">
-                  {current.name}
+                  {userName}
                 </h1>
                 <span className="inline-flex items-center gap-1 rounded-full bg-[#16381e]/10 px-2.5 py-0.5 text-xs font-bold text-[#16381e] border border-[#16381e]/20">
                   <BadgeCheck className="size-3.5 fill-[#c5a059] text-white" />
-                  {current.badge}
+                  {userBadge}
                 </span>
                 {summaryLoading ? (
                   <span className="inline-flex items-center gap-1 text-xs text-muted-foreground ml-2">
@@ -350,7 +407,7 @@ export function DashboardView() {
                   </span>
                 ) : null}
               </div>
-              <p className="text-xs font-medium text-muted-foreground mt-0.5">{current.subtitle}</p>
+              <p className="text-xs font-medium text-muted-foreground mt-0.5">{userSubtitle}</p>
             </div>
           </div>
 
@@ -795,40 +852,108 @@ export function DashboardView() {
 
         {/* TAB 2: PORTEFEUILLE DE BIENS */}
         {selectedTab === 'biens' && (
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {listings.slice(0, 4).map((item) => (
-              <div
-                key={item.slug}
-                className="group flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-white shadow-xs transition-transform hover:-translate-y-1"
-              >
-                <div className="relative aspect-[16/10] overflow-hidden">
-                  <Image
-                    src={item.image}
-                    alt={item.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute top-3 right-3 rounded-full bg-[#16381e] px-2.5 py-1 text-[11px] font-bold text-white shadow-md">
-                    {item.verified ? 'Certifié MBIYO' : 'En révision'}
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2 p-5">
-                  <h3 className="truncate font-semibold text-[#16381e] text-base">{item.title}</h3>
-                  <p className="text-xs text-muted-foreground">{item.district}, {item.city}</p>
-                  <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-3">
-                    <span className="font-display text-lg font-bold text-[#16381e]">
-                      {formatPrice(item)}
-                    </span>
-                    <Link
-                      href={`/biens/${item.slug}`}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-[#16381e] hover:underline"
-                    >
-                      Détails <ArrowUpRight className="size-3.5" />
-                    </Link>
-                  </div>
-                </div>
+          <div className="mt-8 flex flex-col gap-6">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between border-b border-border/80 pb-4">
+              <div>
+                <h3 className="font-display text-lg font-bold text-[#16381e]">
+                  {activeRole === 'agent' ? 'Biens gérés par mon agence / compte' : activeRole === 'proprietaire' ? 'Mes Biens Immobiliers' : 'Biens Enregistrés'}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {user ? `Biens rattachés à ${user.name}` : 'Vos propriétés publiées et vérifiées MBIYO'}
+                </p>
               </div>
-            ))}
+              <Button
+                nativeButton={false}
+                render={<Link href="/publier" />}
+                size="sm"
+                className="gap-1.5 rounded-full bg-[#16381e] text-white hover:bg-[#16381e]/90 text-xs font-semibold self-start sm:self-auto"
+              >
+                <Plus className="size-3.5" />
+                Publier un Nouveau Bien
+              </Button>
+            </div>
+
+            {loadingProperties ? (
+              <div className="flex items-center justify-center py-12 text-xs text-muted-foreground gap-2">
+                <RefreshCw className="size-4 animate-spin text-[#c5a059]" /> Chargement des biens du compte...
+              </div>
+            ) : userProperties.length > 0 ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {userProperties.map((item) => {
+                  const rawImage = item.images?.find((img) => img.is_cover)?.url || item.images?.[0]?.url
+                  const coverImage = resolveImageUrl(rawImage)
+                  return (
+                    <div
+                      key={item.id}
+                      className="group flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-white shadow-xs transition-transform hover:-translate-y-1"
+                    >
+                      <div className="relative aspect-[16/10] overflow-hidden">
+                        <Image
+                          src={coverImage}
+                          alt={item.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute top-3 right-3 rounded-full bg-[#16381e] px-2.5 py-1 text-[11px] font-bold text-white shadow-md">
+                          {item.is_verified ? 'Certifié MBIYO' : item.status === 'published' ? 'En ligne' : 'En révision'}
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2 p-5">
+                        <h3 className="truncate font-semibold text-[#16381e] text-base">{item.title}</h3>
+                        <p className="text-xs text-muted-foreground">{item.neighborhood || item.district || ''} {item.city || ''}</p>
+                        <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-3">
+                          <span className="font-display text-lg font-bold text-[#16381e]">
+                            ${item.price?.toLocaleString()} {item.transaction_type === 'rent' ? '/mois' : ''}
+                          </span>
+                          <Link
+                            href={`/biens/${item.slug || item.id}`}
+                            className="inline-flex items-center gap-1 text-xs font-bold text-[#16381e] hover:underline"
+                          >
+                            Gérer <ArrowUpRight className="size-3.5" />
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {listings.slice(0, 4).map((item) => (
+                  <div
+                    key={item.slug}
+                    className="group flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-white shadow-xs transition-transform hover:-translate-y-1"
+                  >
+                    <div className="relative aspect-[16/10] overflow-hidden">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute top-3 right-3 rounded-full bg-[#16381e] px-2.5 py-1 text-[11px] font-bold text-white shadow-md">
+                        {item.verified ? 'Certifié MBIYO' : 'En révision'}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 p-5">
+                      <h3 className="truncate font-semibold text-[#16381e] text-base">{item.title}</h3>
+                      <p className="text-xs text-muted-foreground">{item.district}, {item.city}</p>
+                      <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-3">
+                        <span className="font-display text-lg font-bold text-[#16381e]">
+                          {formatPrice(item)}
+                        </span>
+                        <Link
+                          href={`/biens/${item.slug}`}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-[#16381e] hover:underline"
+                        >
+                          Détails <ArrowUpRight className="size-3.5" />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

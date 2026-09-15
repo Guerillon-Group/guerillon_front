@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { BadgeCheck, Bath, BedDouble, Heart, Maximize, MapPin } from 'lucide-react'
 
 import { formatPrice, type Listing } from '@/lib/properties'
-import { cn } from '@/lib/utils'
+import { cn, resolveImageUrl } from '@/lib/utils'
 
 export function ListingCard({ listing, priority = false }: { listing: Listing; priority?: boolean }) {
   const [saved, setSaved] = useState(false)
@@ -15,7 +15,7 @@ export function ListingCard({ listing, priority = false }: { listing: Listing; p
     <article className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-transform duration-300 ease-out hover:-translate-y-1">
       <div className="relative aspect-[4/3] overflow-hidden">
         <Image
-          src={listing.image || '/placeholder.svg'}
+          src={resolveImageUrl(listing.image)}
           alt={`${listing.title} à ${listing.district}, ${listing.city}`}
           fill
           sizes="(max-width: 768px) 100vw, 33vw"

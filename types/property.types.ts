@@ -134,6 +134,7 @@ export interface PropertyFilters {
   category?: string
   min_price?: number
   max_price?: number
+  my_properties?: boolean
   page?: number
   per_page?: number
 }
