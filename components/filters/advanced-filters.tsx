@@ -35,10 +35,10 @@ import {
   type Filters,
   type Transaction,
 } from '@/lib/filters'
-import { listings, type Listing } from '@/lib/properties'
+import type { Listing, PropertyType } from '@/lib/properties'
 import { cn } from '@/lib/utils'
 
-const typeIcons: Record<Listing['type'], typeof Home> = {
+const typeIcons: Partial<Record<PropertyType, typeof Home>> = {
   Appartement: Building2,
   Villa: Sparkles,
   Maison: Home,
@@ -119,7 +119,7 @@ function FilterPanel({
   const [openAccess, setOpenAccess] = useState(draft.access.length > 0)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const results = useMemo(() => applyFilters(listings, draft).length, [draft])
+  const results = useMemo(() => applyFilters([], draft).length, [draft])
   const bounds = priceBounds(draft.transaction)
   const histogram = useMemo(() => priceHistogram(draft.transaction), [draft.transaction])
   const peak = Math.max(...histogram.map((b) => b.count), 1)

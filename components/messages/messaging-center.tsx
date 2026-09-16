@@ -259,8 +259,7 @@ export function MessagingCenter() {
               >
                 <Info className="size-4" />
               </Button>
-            </div>on>
-        </div>
+            </div>
 
         {/* Fil des messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -400,6 +399,8 @@ export function MessagingCenter() {
             </div>
           </div>
         </div>
+        </>
+        )}
       </main>
 
       {/* 3. PANNEAU DROIT : Fiche Récapitulative du Bien / Réservation (Airbnb style) */}

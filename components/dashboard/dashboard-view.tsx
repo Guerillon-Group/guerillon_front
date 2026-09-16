@@ -36,7 +36,6 @@ import {
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
 import { Button } from '@/components/ui/button'
-import { formatPrice } from '@/lib/properties'
 import { cn, resolveImageUrl } from '@/lib/utils'
 
 import { OwnerKycPanel } from '@/components/dashboard/owner-kyc-panel'
@@ -873,40 +872,25 @@ export function DashboardView() {
                 })}
               </div>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {listings.slice(0, 4).map((item) => (
-                  <div
-                    key={item.slug}
-                    className="group flex flex-col overflow-hidden rounded-2xl border border-border/80 bg-white shadow-xs transition-transform hover:-translate-y-1"
-                  >
-                    <div className="relative aspect-[16/10] overflow-hidden">
-                      <Image
-                        src={item.image}
-                        alt={item.title}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute top-3 right-3 rounded-full bg-[#16381e] px-2.5 py-1 text-[11px] font-bold text-white shadow-md">
-                        {item.verified ? 'Certifié MBIYO' : 'En révision'}
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2 p-5">
-                      <h3 className="truncate font-semibold text-[#16381e] text-base">{item.title}</h3>
-                      <p className="text-xs text-muted-foreground">{item.district}, {item.city}</p>
-                      <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-3">
-                        <span className="font-display text-lg font-bold text-[#16381e]">
-                          {formatPrice(item)}
-                        </span>
-                        <Link
-                          href={`/biens/${item.slug}`}
-                          className="inline-flex items-center gap-1 text-xs font-bold text-[#16381e] hover:underline"
-                        >
-                          Détails <ArrowUpRight className="size-3.5" />
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border/80 bg-white p-12 text-center shadow-xs">
+                <div className="flex size-14 items-center justify-center rounded-2xl bg-[#16381e]/10 text-[#16381e]">
+                  <Building2 className="size-7" />
+                </div>
+                <h4 className="mt-4 font-display text-base font-bold text-[#16381e]">
+                  Aucun bien enregistré
+                </h4>
+                <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+                  Vous n'avez pas encore de biens enregistrés dans votre portefeuille. Publiez votre premier bien pour le gérer ici.
+                </p>
+                <Button
+                  nativeButton={false}
+                  render={<Link href="/publier" />}
+                  size="sm"
+                  className="mt-5 gap-1.5 rounded-full bg-[#16381e] text-white hover:bg-[#16381e]/90 text-xs font-semibold"
+                >
+                  <Plus className="size-3.5" />
+                  Publier un Nouveau Bien
+                </Button>
               </div>
             )}
           </div>
