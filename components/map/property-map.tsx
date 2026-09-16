@@ -24,15 +24,20 @@ type Props = {
 function spread(listings: Listing[]) {
   const seen = new Map<string, number>()
   return listings.map((listing) => {
-    const key = `${listing.lat.toFixed(3)}:${listing.lng.toFixed(3)}`
+    const rawLat = listing.lat ?? listing.latitude ?? -1.6712
+    const rawLng = listing.lng ?? listing.longitude ?? 29.2201
+    const lat = typeof rawLat === 'number' && !isNaN(rawLat) ? rawLat : parseFloat(String(rawLat)) || -1.6712
+    const lng = typeof rawLng === 'number' && !isNaN(rawLng) ? rawLng : parseFloat(String(rawLng)) || 29.2201
+
+    const key = `${lat.toFixed(3)}:${lng.toFixed(3)}`
     const n = seen.get(key) ?? 0
     seen.set(key, n + 1)
-    if (n === 0) return { listing, lat: listing.lat, lng: listing.lng }
+    if (n === 0) return { listing, lat, lng }
     const angle = (n * 2 * Math.PI) / 6
     return {
       listing,
-      lat: listing.lat + Math.sin(angle) * 0.0025,
-      lng: listing.lng + Math.cos(angle) * 0.0025,
+      lat: lat + Math.sin(angle) * 0.0025,
+      lng: lng + Math.cos(angle) * 0.0025,
     }
   })
 }

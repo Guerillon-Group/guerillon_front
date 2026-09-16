@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-import { cn } from '@/lib/utils'
+import { cn, resolveImageUrl } from '@/lib/utils'
 
 export function ListingGallery({ images, title }: { images: string[]; title: string }) {
   const [index, setIndex] = useState(0)
@@ -16,7 +16,7 @@ export function ListingGallery({ images, title }: { images: string[]; title: str
     <div className="flex flex-col gap-3">
       <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-secondary">
         <Image
-          src={images[index] || '/placeholder.svg'}
+          src={resolveImageUrl(images[index])}
           alt={`${title} — photo ${index + 1} sur ${total}`}
           fill
           priority
@@ -63,7 +63,7 @@ export function ListingGallery({ images, title }: { images: string[]; title: str
                 i === index ? 'border-foreground' : 'border-transparent opacity-70 hover:opacity-100',
               )}
             >
-              <Image src={src || '/placeholder.svg'} alt="" fill sizes="120px" className="object-cover" />
+              <Image src={resolveImageUrl(src)} alt="" fill sizes="120px" className="object-cover" />
             </button>
           ))}
         </div>

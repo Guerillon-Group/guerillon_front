@@ -32,7 +32,10 @@ import { ShareModal } from '@/components/share-modal'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
 import { Button } from '@/components/ui/button'
-import { formatPrice, getListing, listings } from '@/lib/properties'
+import { formatPrice, getListingAsync, listings } from '@/lib/properties'
+
+export const dynamic = 'force-dynamic'
+export const dynamicParams = true
 
 export function generateStaticParams() {
   return listings.map((l) => ({ slug: l.slug }))
@@ -40,7 +43,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-  const listing = getListing(slug)
+  const listing = await getListingAsync(slug)
   if (!listing) return { title: 'Bien introuvable — Real Estate' }
   return {
     title: `${listing.title} — ${listing.city} | Real Estate`,
@@ -107,7 +110,7 @@ const ratingBreakdowns = [
 
 export default async function ListingPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const listing = getListing(slug)
+  const listing = await getListingAsync(slug)
   if (!listing) notFound()
 
   const similar = listings.filter((l) => l.slug !== listing.slug && l.city === listing.city).slice(0, 3)

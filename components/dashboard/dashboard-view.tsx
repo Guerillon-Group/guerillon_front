@@ -14,6 +14,7 @@ import {
   Clock,
   CreditCard,
   Download,
+  Edit3,
   Eye,
   FileCheck,
   FileText,
@@ -39,6 +40,7 @@ import { listings, formatPrice } from '@/lib/properties'
 import { cn, resolveImageUrl } from '@/lib/utils'
 
 import { OwnerKycPanel } from '@/components/dashboard/owner-kyc-panel'
+import { EditPropertyModal } from './edit-property-modal'
 import { useDashboardSummary } from '@/mutations/useDashboardMutations'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { propertyService } from '@/services/property.service'
@@ -305,23 +307,28 @@ export function DashboardView() {
 
   const [userProperties, setUserProperties] = useState<Property[]>([])
   const [loadingProperties, setLoadingProperties] = useState<boolean>(false)
+  const [editingProperty, setEditingProperty] = useState<Property | null>(null)
+
+  const loadUserProperties = () => {
+    setLoadingProperties(true)
+    propertyService
+      .getProperties({ my_properties: true })
+      .then((res) => {
+        if (res.data?.data) {
+          setUserProperties(res.data.data)
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to load user properties:', err)
+      })
+      .finally(() => {
+        setLoadingProperties(false)
+      })
+  }
 
   useEffect(() => {
     if (selectedTab === 'biens') {
-      setLoadingProperties(true)
-      propertyService
-        .getProperties({ my_properties: true })
-        .then((res) => {
-          if (res.data?.data) {
-            setUserProperties(res.data.data)
-          }
-        })
-        .catch((err) => {
-          console.warn('Failed to load user properties:', err)
-        })
-        .finally(() => {
-          setLoadingProperties(false)
-        })
+      loadUserProperties()
     }
   }, [selectedTab, user?.id])
 
@@ -905,12 +912,21 @@ export function DashboardView() {
                           <span className="font-display text-lg font-bold text-[#16381e]">
                             ${item.price?.toLocaleString()} {item.transaction_type === 'rent' ? '/mois' : ''}
                           </span>
-                          <Link
-                            href={`/biens/${item.slug || item.id}`}
-                            className="inline-flex items-center gap-1 text-xs font-bold text-[#16381e] hover:underline"
-                          >
-                            Gérer <ArrowUpRight className="size-3.5" />
-                          </Link>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setEditingProperty(item)}
+                              className="inline-flex items-center gap-1 rounded-xl bg-[#16381e] px-3 py-1.5 text-xs font-bold text-white transition-opacity hover:opacity-90 cursor-pointer shadow-xs"
+                            >
+                              <Edit3 className="size-3.5" /> Gérer
+                            </button>
+                            <Link
+                              href={`/biens/${item.slug || item.id}`}
+                              className="inline-flex items-center gap-1 text-xs font-bold text-[#16381e] hover:underline"
+                            >
+                              Voir <ArrowUpRight className="size-3.5" />
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -986,6 +1002,13 @@ export function DashboardView() {
           </div>
         )}
       </main>
+
+      <EditPropertyModal
+        property={editingProperty}
+        isOpen={!!editingProperty}
+        onClose={() => setEditingProperty(null)}
+        onSaved={loadUserProperties}
+      />
 
       <SiteFooter />
     </div>

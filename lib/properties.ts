@@ -1,3 +1,5 @@
+import { resolveImageUrl } from './utils'
+
 export type PropertyType =
   | 'Appartement'
   | 'Maison'
@@ -359,7 +361,76 @@ export const listings: Listing[] = [
 ]
 
 export function getListing(slug: string) {
-  return listings.find((l) => l.slug === slug)
+  return listings.find((l) => l.slug === slug || l.id === slug)
+}
+
+export function apiPropertyToListing(p: any): Listing {
+  const rawCover = p.images?.find((img: any) => img.is_cover)?.url || p.images?.[0]?.url || '/placeholder.svg'
+  const coverImage = resolveImageUrl(rawCover)
+  const rawGallery = p.images?.map((img: any) => img.url) || [rawCover]
+  const gallery = rawGallery.map((imgUrl: string) => resolveImageUrl(imgUrl))
+
+  return {
+    id: p.id,
+    slug: p.slug || p.id,
+    title: p.title || 'Propriété Immobilière',
+    city: p.city || 'Goma',
+    district: p.district || p.neighborhood || 'Centre-Ville',
+    price: p.price || 0,
+    currency: p.currency || 'USD',
+    period: p.transaction_type === 'rent' || p.transaction_type === 'Louer' ? 'mois' : undefined,
+    status: p.transaction_type === 'rent' || p.transaction_type === 'Louer' ? 'À louer' : 'À vendre',
+    type: (p.type?.name as PropertyType) || 'Appartement',
+    beds: p.bedrooms || 0,
+    baths: p.bathrooms || 0,
+    surface: p.surface_area || 0,
+    image: coverImage,
+    gallery: gallery.length > 0 ? gallery : [coverImage],
+    badges: p.is_featured ? ['Vedette'] : ['Nouveau'],
+    verified: p.is_verified ?? true,
+    rating: 4.9,
+    reviews: 12,
+    description: p.description || 'Spacieuse propriété disponible sur MBIYO Real Estate.',
+    features: p.features?.map((f: any) => f.name || f) || ['Eau 24/7', 'Électricité', 'Gardiennage'],
+    amenities: ['eau', 'gardiennage'],
+    lat: p.latitude ? Number(p.latitude) : (p.lat ? Number(p.lat) : -1.6712),
+    lng: p.longitude ? Number(p.longitude) : (p.lng ? Number(p.lng) : 29.2201),
+    agent: {
+      name: p.agent?.name || 'Sarah Mukendi',
+      role: 'Agent certifié',
+      avatar: resolveImageUrl(p.agent?.avatar || '/images/agent-portrait.png'),
+      agency: p.agency?.name || 'MBIYO Real Estate',
+      responseTime: 'Répond en ~1 h',
+    },
+  }
+}
+
+export async function getListingAsync(slug: string): Promise<Listing | undefined> {
+  const local = getListing(slug)
+  if (local) return local
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://backr.test/api/v1'
+  const candidates = Array.from(new Set([
+    apiUrl,
+    'http://127.0.0.1:8000/api/v1',
+    'http://localhost:8000/api/v1',
+  ]))
+
+  for (const url of candidates) {
+    try {
+      const res = await fetch(`${url}/properties/${slug}`, { cache: 'no-store' })
+      if (res.ok) {
+        const json = await res.json()
+        if (json.data) {
+          return apiPropertyToListing(json.data)
+        }
+      }
+    } catch (e) {
+      // try next candidate
+    }
+  }
+
+  return undefined
 }
 
 export function formatPrice(listing: Pick<Listing, 'price' | 'period'>) {
