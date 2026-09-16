@@ -10,14 +10,7 @@ import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { listings } from '@/lib/properties'
-
-const collections = [
-  { name: 'Bord du lac Kivu', count: 42, image: '/images/maison-lac-kivu.png' },
-  { name: 'Villas d’architecte', count: 18, image: '/images/villa-piscine.png' },
-  { name: 'Terrains titrés', count: 76, image: '/images/terrain-bukavu.png' },
-  { name: 'Bureaux Gombe', count: 24, image: '/images/bureau-gombe.png' },
-]
+import { propertyService } from '@/services/property.service'
 
 const stats = [
   { value: '1 240+', label: 'Annonces vérifiées' },
@@ -44,7 +37,10 @@ const trust = [
   },
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  const featuredResponse = await propertyService.getProperties({ per_page: 6, featured: true })
+  const featured = featuredResponse.data?.data || []
+
   return (
     <div className="flex min-h-dvh flex-col">
       <div className="border-b border-emerald-900/10 bg-[#16381e] text-white">
@@ -108,90 +104,23 @@ export default function HomePage() {
         {/* Onglets + rail principal */}
         <BrowseTabs />
 
-        {/* Reprendre la recherche */}
-        <section className="mx-auto w-full max-w-[1280px] px-4 pt-14 md:px-6 md:pt-20">
-          <Reveal>
-            <h2 className="font-display text-2xl leading-tight font-bold tracking-tight text-foreground md:text-[30px]">
-              A Bujumbura
-            </h2>
-          </Reveal>
-          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {listings.map((listing, i) => (
-              <Reveal key={listing.slug} as="li" delay={Math.min(i, 5) * 70}>
-                <CompactCard listing={listing} />
-              </Reveal>
-            ))}
-          </ul>
-        </section>
-
-        <section className="mx-auto w-full max-w-[1280px] px-4 pt-14 md:px-6 md:pt-20">
-          <Reveal>
-            <h2 className="font-display text-2xl leading-tight font-bold tracking-tight text-foreground md:text-[30px]">
-              A Goma
-            </h2>
-          </Reveal>
-          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {listings.map((listing, i = 2) => (
-              <Reveal key={listing.slug} as="li" delay={Math.min(i, 2) * 70}>
-                <CompactCard listing={listing} />
-              </Reveal>
-            ))}
-          </ul>
-        </section>
-
-        {/* Collections */}
-        <section className="mx-auto w-full max-w-[1280px] overflow-hidden px-4 pt-14 md:px-6 md:pt-20">
-          <div className="flex items-end justify-between gap-6">
-            <div>
+        {/* Biens vedettes */}
+        {featured.length > 0 && (
+          <section className="mx-auto w-full max-w-[1280px] px-4 pt-14 md:px-6 md:pt-20">
+            <Reveal>
               <h2 className="font-display text-2xl leading-tight font-bold tracking-tight text-foreground md:text-[30px]">
-                Immenses collections
+                Sélection du moment
               </h2>
-              <p className="mt-1.5 text-sm text-muted-foreground">
-                Des sélections construites par nos agents, pas par un algorithme.
-              </p>
-            </div>
-            <Link
-              href="/carte"
-              className="hidden shrink-0 items-center gap-1.5 text-sm font-medium text-foreground transition-colors hover:text-accent sm:flex"
-            >
-              Tout voir
-              <ArrowRight className="size-4" />
-            </Link>
-          </div>
-
-          <ul className="hide-scrollbar mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 md:grid md:grid-cols-4 md:overflow-visible">
-            {collections.map((collection, i) => (
-              <Reveal
-                key={collection.name}
-                as="li"
-                delay={i * 80}
-                className="w-[220px] shrink-0 snap-start md:w-auto"
-              >
-                <Link
-                  href="/carte"
-                  className="group block overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:shadow-foreground/10"
-                >
-                  <div className="relative aspect-[5/4] overflow-hidden">
-                    <Image
-                      src={collection.image || '/placeholder.svg'}
-                      alt={collection.name}
-                      fill
-                      sizes="(max-width: 768px) 60vw, 22vw"
-                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
-                    />
-                    <span className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-primary/45 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                  </div>
-                  <div className="flex items-center justify-between gap-3 p-4">
-                    <span className="truncate text-sm font-medium text-foreground transition-colors duration-200 group-hover:text-accent">
-                      {collection.name}
-                    </span>
-                    <span className="shrink-0 text-xs text-muted-foreground">{collection.count}</span>
-                  </div>
-                </Link>
-              </Reveal>
-            ))}
-          </ul>
-        </section>
+            </Reveal>
+            <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {featured.map((listing, i) => (
+                <Reveal key={listing.slug || listing.id} as="li" delay={Math.min(i, 5) * 70}>
+                  <CompactCard listing={listing} />
+                </Reveal>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {/* Trust */}
         <section className="mx-auto w-full max-w-[1280px] px-4 pt-14 md:px-6 md:pt-20">

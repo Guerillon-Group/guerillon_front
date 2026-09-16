@@ -1,4 +1,4 @@
-import { listings, type Listing } from '@/lib/properties'
+import type { Listing } from '@/lib/properties'
 
 export type Transaction = 'Tout' | 'À vendre' | 'À louer'
 
@@ -56,42 +56,52 @@ export const labelCatalog = [
   {
     id: 'exclusivite',
     title: 'Exclusivité',
-    blurb: 'Mandat confié à KivuHomes, introuvable ailleurs.',
+    blurb: 'Mandat confié à MBIYO, introuvable ailleurs.',
   },
 ] as const
 
-export const allCities = Array.from(new Set(listings.map((l) => l.city)))
-export const allTypes = Array.from(new Set(listings.map((l) => l.type)))
+export function getAvailableCities(pool: Listing[]): string[] {
+  return Array.from(new Set(pool.map((l) => l.city).filter(Boolean)))
+}
+
+export function getAvailableTypes(pool: Listing[]): Listing['type'][] {
+  return Array.from(new Set(pool.map((l) => l.type).filter(Boolean)))
+}
+
+export const allCities: string[] = []
+export const allTypes: Listing['type'][] = []
 
 /** Le budget porte sur le loyer mensuel en location, sur le prix de vente sinon. */
-export function priceBounds(transaction: Transaction) {
+export function priceBounds(transaction: Transaction, pool: Listing[] = []) {
   const rent = transaction === 'À louer'
-  const pool = listings.filter((l) => (rent ? l.status === 'À louer' : l.status === 'À vendre'))
+  const filteredPool = pool.filter((l) => (rent ? l.status === 'À louer' : l.status === 'À vendre'))
   const step = rent ? 50 : 5000
-  const max = Math.ceil(Math.max(...pool.map((l) => l.price)) / step) * step
+  const maxPrice = filteredPool.length > 0 ? Math.max(...filteredPool.map((l) => l.price)) : (rent ? 5000 : 500000)
+  const max = Math.ceil((maxPrice || (rent ? 5000 : 500000)) / step) * step
   return { min: 0, max, step, rent }
 }
 
-export function priceHistogram(transaction: Transaction, buckets = 26) {
-  const { min, max, rent } = priceBounds(transaction)
-  const pool = listings.filter((l) => (rent ? l.status === 'À louer' : l.status === 'À vendre'))
-  const width = (max - min) / buckets
+export function priceHistogram(transaction: Transaction, pool: Listing[] = [], buckets = 26) {
+  const { min, max, rent } = priceBounds(transaction, pool)
+  const filteredPool = pool.filter((l) => (rent ? l.status === 'À louer' : l.status === 'À vendre'))
+  const width = Math.max(1, (max - min) / buckets)
   const counts = Array.from({ length: buckets }, () => 0)
 
-  for (const l of pool) {
+  for (const l of filteredPool) {
     const i = Math.min(buckets - 1, Math.floor((l.price - min) / width))
-    // adoucit la silhouette pour que l'histogramme reste lisible avec peu de biens
-    for (let d = -3; d <= 3; d += 1) {
-      const j = i + d
-      if (j >= 0 && j < buckets) counts[j] += 1 / (1 + Math.abs(d) * 1.6)
+    if (i >= 0 && i < buckets) {
+      for (let d = -3; d <= 3; d += 1) {
+        const j = i + d
+        if (j >= 0 && j < buckets) counts[j] += 1 / (1 + Math.abs(d) * 1.6)
+      }
     }
   }
 
   return counts.map((c, i) => ({ from: min + i * width, to: min + (i + 1) * width, count: c }))
 }
 
-export function defaultFilters(transaction: Transaction = 'Tout'): Filters {
-  const { min, max } = priceBounds(transaction)
+export function defaultFilters(transaction: Transaction = 'Tout', pool: Listing[] = []): Filters {
+  const { min, max } = priceBounds(transaction, pool)
   return {
     transaction,
     types: [],

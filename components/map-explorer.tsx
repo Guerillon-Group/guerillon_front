@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { BadgeCheck, Bath, BedDouble, Maximize, SlidersHorizontal, X } from 'lucide-react'
@@ -17,22 +17,49 @@ import {
   type Filters,
   type Transaction,
 } from '@/lib/filters'
-import { formatPrice, listings, type Listing } from '@/lib/properties'
+import { apiPropertyToListing, formatPrice, type Listing } from '@/lib/properties'
 import { cn } from '@/lib/utils'
+import { propertyService } from '@/services/property.service'
 
 const types = ['Tout', 'Appartement', 'Villa', 'Maison', 'Terrain', 'Bureau'] as const
 
 export function MapExplorer() {
-  const [filters, setFilters] = useState<Filters>(() => defaultFilters('Tout'))
+  const [properties, setProperties] = useState<Listing[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState<Filters>(() => defaultFilters('Tout', []))
   const [active, setActive] = useState<string | null>(null)
   const [showList, setShowList] = useState(false)
 
-  const filtered = useMemo(() => applyFilters(listings, filters), [filters])
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    propertyService
+      .getProperties({ per_page: 50 })
+      .then((res) => {
+        if (cancelled) return
+        const raw = res.data?.data || []
+        const converted = raw.map(apiPropertyToListing)
+        setProperties(converted)
+      })
+      .catch((err) => {
+        console.warn('Failed to load map properties from API:', err)
+        if (!cancelled) setProperties([])
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const filtered = useMemo(() => applyFilters(properties, filters), [properties, filters])
   const chips = filterChips(filters)
 
   const setTransaction = (t: Transaction) =>
     setFilters((f) => {
-      const b = priceBounds(t)
+      const b = priceBounds(t, properties)
       return { ...f, transaction: t, priceMin: b.min, priceMax: b.max }
     })
 

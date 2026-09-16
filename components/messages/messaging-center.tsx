@@ -55,98 +55,11 @@ type Conversation = {
   messages: Message[]
 }
 
-const mockConversations: Conversation[] = [
-  {
-    id: 'conv-1',
-    agentName: 'Sarah Mukendi',
-    agentAvatar: '/images/agent-portrait.png',
-    agentRole: 'Agent certifié · Horizon Kivu',
-    propertyTitle: 'Appartement moderne, vue sur le lac',
-    propertySlug: 'appartement-moderne-goma',
-    propertyImage: '/images/appartement-goma.png',
-    city: 'Goma',
-    district: 'Himbi',
-    price: '1 450 $ / mois',
-    statusText: 'Visite confirmée · 14 - 16 Août',
-    statusColor: 'green',
-    checkIn: 'Ven. 14 Août, 15:00',
-    checkOut: 'Dim. 16 Août, 11:00',
-    lastMessage: 'Merci, rendez-vous confirmé à l\'appartement !',
-    lastMessageTime: '15:21',
-    unread: false,
-    messages: [
-      {
-        id: 'm1',
-        sender: 'user',
-        text: 'Bonjour Sarah ! Merci d\'avoir confirmé ma demande de visite pour l\'appartement à Himbi.',
-        time: '15:15',
-        read: true,
-      },
-      {
-        id: 'm2',
-        sender: 'user',
-        text: 'J\'ai hâte de découvrir la vue sur le lac Kivu !',
-        time: '15:16',
-        imageUrl: '/images/salon-interieur.png',
-        read: true,
-      },
-      {
-        id: 'm3',
-        sender: 'agent',
-        text: 'Bonjour ! Avec grand plaisir. Je vous attendrai à la réception de la résidence ce vendredi à 15:00.',
-        time: '15:20',
-        reaction: '👍',
-      },
-      {
-        id: 'm4',
-        sender: 'agent',
-        text: 'Merci, rendez-vous confirmé à l\'appartement !',
-        time: '15:21',
-      },
-    ],
-  },
-  {
-    id: 'conv-2',
-    agentName: 'David Kasaï',
-    agentAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
-    agentRole: 'Agent immobilier · Kivu Prime',
-    propertyTitle: 'Villa d\'architecte avec piscine',
-    propertySlug: 'villa-piscine-goma',
-    propertyImage: '/images/villa-piscine.png',
-    city: 'Goma',
-    district: 'Katindo',
-    price: '385 000 $',
-    statusText: 'Demande d\'informations envoyée',
-    statusColor: 'orange',
-    checkIn: 'Mer. 19 Août, 10:00',
-    checkOut: 'Mer. 19 Août, 12:00',
-    lastMessage: 'Est-il possible d\'organiser une visite virtuelle en direct ?',
-    lastMessageTime: 'Hier',
-    unread: true,
-    messages: [
-      {
-        id: 'm201',
-        sender: 'user',
-        text: 'Bonjour David, je souhaiterais des précisions sur le titre de propriété de la villa à Katindo.',
-        time: 'Hier, 18:30',
-        read: true,
-      },
-      {
-        id: 'm202',
-        sender: 'user',
-        text: 'Est-il possible d\'organiser une visite virtuelle en direct ?',
-        time: 'Hier, 18:32',
-        read: true,
-      },
-    ],
-  },
-]
-
 const EMOJI_REACTIONS = ['👍', '❤️', '👏', '😂', '😊']
 
 export function MessagingCenter() {
-  const [conversations, setConversations] = useState<Conversation[]>(mockConversations)
-  const [activeConvId, setActiveConvId] = useState<string>('conv-1')
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [activeConvId, setActiveConvId] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
   const [inputText, setInputText] = useState('')
   const [hoveredMsgId, setHoveredMsgId] = useState<string | null>(null)
@@ -251,92 +164,102 @@ export function MessagingCenter() {
             >
               Non lus
             </button>
-          </div>
-        </div>
-
-        {/* Liste des conversations */}
+          </div>        {/* Liste des conversations */}
         <div className="flex-1 overflow-y-auto divide-y divide-border/60 p-2">
-          {filteredConversations.map((conv) => {
-            const isActive = conv.id === activeConvId
-            return (
-              <button
-                key={conv.id}
-                type="button"
-                onClick={() => setActiveConvId(conv.id)}
-                className={cn(
-                  'flex w-full items-start gap-3 rounded-2xl p-3 text-left transition-all',
-                  isActive ? 'bg-secondary' : 'hover:bg-secondary/40',
-                )}
-              >
-                <div className="relative size-12 shrink-0">
-                  <Image
-                    src={conv.agentAvatar}
-                    alt={conv.agentName}
-                    width={48}
-                    height={48}
-                    className="size-full rounded-full object-cover ring-1 ring-border"
-                  />
-                  <div className="absolute -bottom-1 -right-1 size-5 overflow-hidden rounded-full border border-background">
-                    <Image src={conv.propertyImage} alt="" width={20} height={20} className="size-full object-cover" />
-                  </div>
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between">
-                    <p className="truncate text-sm font-bold text-foreground">{conv.agentName}</p>
-                    <span className="text-[11px] text-muted-foreground">{conv.lastMessageTime}</span>
-                  </div>
-                  <p className="truncate text-xs font-medium text-foreground/90 mt-0.5">{conv.propertyTitle}</p>
-                  <p className="truncate text-xs text-muted-foreground mt-1">{conv.lastMessage}</p>
-
-                  <div className="mt-2 flex items-center gap-1.5">
-                    <span
-                      className={cn(
-                        'size-2 rounded-full',
-                        conv.statusColor === 'green' && 'bg-emerald-500',
-                        conv.statusColor === 'orange' && 'bg-amber-500',
-                        conv.statusColor === 'blue' && 'bg-blue-500',
-                      )}
+          {filteredConversations.length === 0 ? (
+            <div className="p-6 text-center text-xs text-muted-foreground">
+              Aucune conversation pour le moment.
+            </div>
+          ) : (
+            filteredConversations.map((conv) => {
+              const isActive = conv.id === activeConvId
+              return (
+                <button
+                  key={conv.id}
+                  type="button"
+                  onClick={() => setActiveConvId(conv.id)}
+                  className={cn(
+                    'flex w-full items-start gap-3 rounded-2xl p-3 text-left transition-all',
+                    isActive ? 'bg-secondary' : 'hover:bg-secondary/40',
+                  )}
+                >
+                  <div className="relative size-12 shrink-0">
+                    <Image
+                      src={conv.agentAvatar}
+                      alt={conv.agentName}
+                      width={48}
+                      height={48}
+                      className="size-full rounded-full object-cover ring-1 ring-border"
                     />
-                    <span className="truncate text-[10px] font-semibold text-muted-foreground">{conv.statusText}</span>
+                    <div className="absolute -bottom-1 -right-1 size-5 overflow-hidden rounded-full border border-background">
+                      <Image src={conv.propertyImage} alt="" width={20} height={20} className="size-full object-cover" />
+                    </div>
                   </div>
-                </div>
-              </button>
-            )
-          })}
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="truncate text-sm font-bold text-foreground">{conv.agentName}</p>
+                      <span className="text-[11px] text-muted-foreground">{conv.lastMessageTime}</span>
+                    </div>
+                    <p className="truncate text-xs font-medium text-foreground/90 mt-0.5">{conv.propertyTitle}</p>
+                    <p className="truncate text-xs text-muted-foreground mt-1">{conv.lastMessage}</p>
+
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <span
+                        className={cn(
+                          'size-2 rounded-full',
+                          conv.statusColor === 'green' && 'bg-emerald-500',
+                          conv.statusColor === 'orange' && 'bg-amber-500',
+                          conv.statusColor === 'blue' && 'bg-blue-500',
+                        )}
+                      />
+                      <span className="truncate text-[10px] font-semibold text-muted-foreground">{conv.statusText}</span>
+                    </div>
+                  </div>
+                </button>
+              )
+            })
+          )}
         </div>
       </aside>
 
       {/* 2. PANNEAU CENTRAL : ZONE DE CHAT */}
       <main className="flex flex-1 flex-col overflow-hidden bg-background">
-        {/* Header du Chat */}
-        <div className="flex h-16 items-center justify-between border-b border-border px-6">
-          <div className="flex items-center gap-3">
-            <Image
-              src={activeConv.agentAvatar}
-              alt={activeConv.agentName}
-              width={40}
-              height={40}
-              className="size-10 rounded-full object-cover ring-1 ring-border"
-            />
-            <div>
-              <h2 className="text-sm font-bold text-foreground">{activeConv.agentName}</h2>
-              <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Globe className="size-3" />
-                {activeConv.agentRole}
-              </p>
-            </div>
+        {!activeConv ? (
+          <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground">
+            Sélectionnez ou démarrez une conversation pour afficher les messages.
           </div>
+        ) : (
+          <>
+            {/* Header du Chat */}
+            <div className="flex h-16 items-center justify-between border-b border-border px-6">
+              <div className="flex items-center gap-3">
+                <Image
+                  src={activeConv.agentAvatar}
+                  alt={activeConv.agentName}
+                  width={40}
+                  height={40}
+                  className="size-10 rounded-full object-cover ring-1 ring-border"
+                />
+                <div>
+                  <h2 className="text-sm font-bold text-foreground">{activeConv.agentName}</h2>
+                  <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Globe className="size-3" />
+                    {activeConv.agentRole}
+                  </p>
+                </div>
+              </div>
 
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => setShowRightSidebar(!showRightSidebar)}
-            className="rounded-full"
-            title="Détails du bien"
-          >
-            <Info className="size-4" />
-          </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setShowRightSidebar(!showRightSidebar)}
+                className="rounded-full"
+                title="Détails du bien"
+              >
+                <Info className="size-4" />
+              </Button>
+            </div>on>
         </div>
 
         {/* Fil des messages */}
@@ -480,7 +403,7 @@ export function MessagingCenter() {
       </main>
 
       {/* 3. PANNEAU DROIT : Fiche Récapitulative du Bien / Réservation (Airbnb style) */}
-      {showRightSidebar && (
+      {showRightSidebar && activeConv && (
         <aside className="hidden w-80 shrink-0 border-l border-border bg-card p-6 lg:block xl:w-96 overflow-y-auto">
           <div className="flex items-center justify-between pb-4 border-b border-border">
             <h3 className="font-display text-base font-bold text-foreground">Détails de la demande</h3>

@@ -32,80 +32,33 @@ import { ShareModal } from '@/components/share-modal'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
 import { Button } from '@/components/ui/button'
-import { formatPrice, getListingAsync, listings } from '@/lib/properties'
+import { apiPropertyToListing, formatPrice, getListingAsync } from '@/lib/properties'
+import { propertyService } from '@/services/property.service'
 
 export const dynamic = 'force-dynamic'
 export const dynamicParams = true
 
 export function generateStaticParams() {
-  return listings.map((l) => ({ slug: l.slug }))
+  return []
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const listing = await getListingAsync(slug)
-  if (!listing) return { title: 'Bien introuvable — Real Estate' }
+  if (!listing) return { title: 'Bien introuvable — MBIYO Real Estate' }
   return {
-    title: `${listing.title} — ${listing.city} | Real Estate`,
+    title: `${listing.title} — ${listing.city} | MBIYO Real Estate`,
     description: listing.description.slice(0, 155),
   }
 }
 
-// Données fictives d'avis structurés inspirés d'Airbnb
-const mockReviews = [
-  {
-    id: '1',
-    name: 'Kathy',
-    location: 'Lynnwood, Washington',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80',
-    date: 'Avril 2025',
-    tenure: '4 ans sur la plateforme',
-    rating: 5,
-    comment:
-      'Séjour absolument formidable ! L\'emplacement à Goma est parfait, la vue est imprenable et les équipements sont exactement conformes aux photos. L\'agent a été d\'une réactivité remarquable.',
-  },
-  {
-    id: '2',
-    name: 'Arline',
-    location: 'Bruxelles, Belgique',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
-    date: 'Mars 2025',
-    tenure: '2 ans sur la plateforme',
-    rating: 5,
-    comment:
-      'Emplacement calme, endroit propre et hôte très accueillant. Le système d\'eau et le groupe électrogène fonctionnent sans interruption, ce qui est un vrai plus !',
-  },
-  {
-    id: '3',
-    name: 'Octavie',
-    location: 'Kinshasa, RDC',
-    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&q=80',
-    date: 'Février 2025',
-    tenure: '5 ans sur la plateforme',
-    rating: 5,
-    comment:
-      'Nous avons adoré notre séjour. Les espaces sont lumineux, bien agencés et très confortables. Fortement recommandé pour un séjour professionnel ou de détente !',
-  },
-  {
-    id: '4',
-    name: 'Nathan',
-    location: 'Paris, France',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
-    date: 'Février 2025',
-    tenure: '3 ans sur la plateforme',
-    rating: 5,
-    comment:
-      'Très bon accueil par l\'agent immobilier. Conseils précieux sur le quartier et grande flexibilité pour les horaires de visite et remise des clés.',
-  },
-]
-
 const ratingBreakdowns = [
-  { label: 'Propreté', score: '4.9', icon: Sparkles },
-  { label: 'Exactitude', score: '4.9', icon: ShieldCheck },
-  { label: 'Arrivée / Visite', score: '4.9', icon: KeyRound },
+  { label: 'Propreté', score: '5.0', icon: Sparkles },
+  { label: 'Exactitude', score: '5.0', icon: ShieldCheck },
+  { label: 'Arrivée / Visite', score: '5.0', icon: KeyRound },
   { label: 'Communication', score: '5.0', icon: MessageSquare },
-  { label: 'Emplacement', score: '4.8', icon: MapPin },
-  { label: 'Rapport qualité/prix', score: '4.9', icon: Flame },
+  { label: 'Emplacement', score: '5.0', icon: MapPin },
+  { label: 'Rapport qualité/prix', score: '5.0', icon: Flame },
 ]
 
 export default async function ListingPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -113,9 +66,17 @@ export default async function ListingPage({ params }: { params: Promise<{ slug: 
   const listing = await getListingAsync(slug)
   if (!listing) notFound()
 
-  const similar = listings.filter((l) => l.slug !== listing.slug && l.city === listing.city).slice(0, 3)
-  const fallbackSimilar = listings.filter((l) => l.slug !== listing.slug).slice(0, 3)
-  const suggestions = similar.length >= 2 ? similar : fallbackSimilar
+  let suggestions: any[] = []
+  try {
+    const similarRes = await propertyService.getProperties({ city: listing.city, per_page: 4 })
+    const raw = similarRes.data?.data || []
+    suggestions = raw
+      .map(apiPropertyToListing)
+      .filter((l) => l.slug !== listing.slug && l.id !== listing.id)
+      .slice(0, 3)
+  } catch (e) {
+    suggestions = []
+  }
 
   const specs = [
     { icon: BedDouble, label: 'Chambres', value: listing.beds > 0 ? String(listing.beds) : '—' },
@@ -431,43 +392,8 @@ export default async function ListingPage({ params }: { params: Promise<{ slug: 
           </div>
 
           {/* Grille d'Avis des clients */}
-          <div className="mt-10 grid gap-6 sm:grid-cols-2">
-            {mockReviews.map((review) => (
-              <div key={review.id} className="flex flex-col justify-between rounded-2xl border border-border/70 bg-card/40 p-6">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <Image
-                      src={review.avatar}
-                      alt={review.name}
-                      width={48}
-                      height={48}
-                      className="size-11 rounded-full object-cover ring-1 ring-border"
-                    />
-                    <div>
-                      <h4 className="text-sm font-bold text-foreground">{review.name}</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {review.location} · {review.tenure}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                    <div className="flex text-amber-400">
-                      {[...Array(review.rating)].map((_, i) => (
-                        <Star key={i} className="size-3.5 fill-amber-400" />
-                      ))}
-                    </div>
-                    <span>· {review.date}</span>
-                  </div>
-                  <p className="mt-3 text-sm leading-relaxed text-foreground/90">{review.comment}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-8 text-center">
-            <Button variant="outline" className="rounded-xl border-border px-6 font-semibold">
-              Afficher les {listing.reviews} avis
-            </Button>
+          <div className="mt-8 text-center p-8 rounded-2xl border border-dashed border-border">
+            <p className="text-sm text-muted-foreground">Aucun avis publié pour le moment pour ce bien.</p>
           </div>
         </section>
 

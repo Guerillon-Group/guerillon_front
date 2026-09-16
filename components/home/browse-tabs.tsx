@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Briefcase, Building2, Home, LayoutGrid, Sprout, Trees } from 'lucide-react'
 
 import { ListingRail } from '@/components/home/listing-rail'
-import { listings } from '@/lib/properties'
+import { apiPropertyToListing, type Listing } from '@/lib/properties'
 import { cn } from '@/lib/utils'
+import { propertyService } from '@/services/property.service'
 
 const tabs = [
   { id: 'tout', label: 'Tout', icon: LayoutGrid, subtitle: 'Prix moyens constatés sur les 30 derniers jours' },
@@ -18,20 +19,40 @@ const tabs = [
 
 export function BrowseTabs() {
   const [active, setActive] = useState<string>('tout')
-  const [loading, setLoading] = useState(false)
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [properties, setProperties] = useState<Listing[]>([])
+  const [loading, setLoading] = useState(true)
 
   const current = tabs.find((t) => t.id === active) ?? tabs[0]
-  const items = active === 'tout' ? listings : listings.filter((l) => l.type === active)
 
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    propertyService
+      .getProperties({ per_page: 20 })
+      .then((res) => {
+        if (cancelled) return
+        const raw = res.data?.data || []
+        const converted = raw.map(apiPropertyToListing)
+        setProperties(converted)
+      })
+      .catch((err) => {
+        console.warn('Failed to load browse tabs properties from API:', err)
+        if (!cancelled) setProperties([])
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const items = active === 'tout' ? properties : properties.filter((l) => l.type === active)
 
   const select = (id: string) => {
     if (id === active) return
-    if (timer.current) clearTimeout(timer.current)
     setActive(id)
-    setLoading(true)
-    timer.current = setTimeout(() => setLoading(false), 520)
   }
 
   return (
