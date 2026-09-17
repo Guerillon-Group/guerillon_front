@@ -161,6 +161,8 @@ export function MessagingCenter() {
                   ? 'bg-foreground text-background shadow-xs'
                   : 'bg-secondary text-muted-foreground hover:text-foreground',
               )}
+            >
+              Non lus
             </button>
           </div>
         </div>
