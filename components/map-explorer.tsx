@@ -55,6 +55,7 @@ export function MapExplorer() {
   }, [])
 
   const filtered = useMemo(() => applyFilters(properties, filters), [properties, filters])
+  const activeListing = useMemo(() => filtered.find((l) => l.slug === active) || properties.find((l) => l.slug === active), [filtered, properties, active])
   const chips = filterChips(filters)
 
   const setTransaction = (t: Transaction) =>
@@ -177,9 +178,9 @@ export function MapExplorer() {
             className="absolute inset-0 size-full"
           />
 
-          {active && (
+          {activeListing && (
             <ActiveCard
-              listing={filtered.find((l) => l.slug === active)!}
+              listing={activeListing}
               onClose={() => setActive(null)}
             />
           )}
@@ -270,7 +271,9 @@ export function MapExplorer() {
   )
 }
 
-function ActiveCard({ listing, onClose }: { listing: Listing; onClose: () => void }) {
+function ActiveCard({ listing, onClose }: { listing?: Listing; onClose: () => void }) {
+  if (!listing) return null
+
   return (
     <div className="glass-panel absolute inset-x-4 bottom-4 z-[500] flex gap-4 rounded-xl border border-border p-3 md:left-4 md:right-auto md:w-[380px]">
       <div className="relative size-20 shrink-0 overflow-hidden rounded-lg">
