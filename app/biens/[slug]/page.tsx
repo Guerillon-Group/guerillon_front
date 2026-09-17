@@ -28,6 +28,7 @@ import {
 import { ListingCard } from '@/components/listing-card'
 import { ListingGallery } from '@/components/listing-gallery'
 import { MapCanvas } from '@/components/map/map-canvas'
+import { PropertyReservationWidget } from '@/components/property-reservation-widget'
 import { ShareModal } from '@/components/share-modal'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
@@ -256,109 +257,7 @@ export default async function ListingPage({ params }: { params: Promise<{ slug: 
           </div>
 
           {/* Sidebar Sticky de réservation / contact */}
-          <aside id="reserver" className="scroll-mt-24 lg:sticky lg:top-24 lg:self-start">
-            <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-lg shadow-black/5 transition-all">
-              {/* Badge rare find / coup de coeur inspiré Airbnb */}
-              <div className="mb-5 flex items-center justify-between rounded-2xl bg-amber-500/10 px-4 py-3 text-xs font-semibold text-amber-700 dark:text-amber-400">
-                <span className="flex items-center gap-2">
-                  <Sparkles className="size-4 text-amber-500" />
-                  Bien très demandé sur {listing.city}
-                </span>
-                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold">
-                  Pro-Vérifié
-                </span>
-              </div>
-
-              <div className="flex items-baseline justify-between">
-                <div>
-                  <span className="font-display text-3xl font-bold text-foreground">{formatPrice(listing)}</span>
-                  {listing.period && <span className="text-sm text-muted-foreground"> / {listing.period}</span>}
-                </div>
-                <div className="flex items-center gap-1 text-xs font-semibold">
-                  <Star className="size-3.5 fill-amber-400 text-amber-400" />
-                  <span>{typeof listing.rating === 'number' ? listing.rating.toFixed(1) : (listing.rating ?? '—')}</span>
-                  <span className="text-muted-foreground">({listing.reviews})</span>
-                </div>
-              </div>
-
-              {/* Formulaire de réservation compact inspiré Airbnb */}
-              <div className="mt-5 overflow-hidden rounded-2xl border border-border bg-background">
-                <div className="grid grid-cols-2 divide-x divide-border border-b border-border">
-                  <div className="p-3">
-                    <label className="block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                      Date souhaitée
-                    </label>
-                    <input
-                      type="date"
-                      className="mt-1 w-full bg-transparent text-xs font-semibold text-foreground outline-none cursor-pointer"
-                    />
-                  </div>
-                  <div className="p-3">
-                    <label className="block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                      Heure de visite
-                    </label>
-                    <select className="mt-1 w-full bg-transparent text-xs font-semibold text-foreground outline-none cursor-pointer">
-                      <option>10:00 AM</option>
-                      <option>02:00 PM</option>
-                      <option>04:30 PM</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="p-3">
-                  <label className="block text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                    Type de demande
-                  </label>
-                  <select className="mt-1 w-full bg-transparent text-xs font-semibold text-foreground outline-none cursor-pointer">
-                    <option>Visite guidée sur place</option>
-                    <option>Visite vidéo en direct</option>
-                    <option>Renseignements complémentaires</option>
-                  </select>
-                </div>
-              </div>
-
-              <Button className="mt-5 h-12 w-full rounded-2xl font-bold text-sm shadow-md transition-all hover:scale-[1.01] active:scale-[0.99]">
-                {listing.status === 'À louer' ? 'Réserver la visite' : 'Demander un dossier d\'achat'}
-              </Button>
-              <p className="mt-2.5 text-center text-xs text-muted-foreground">
-                Aucun paiement n&apos;est exigé pour planifier une visite.
-              </p>
-
-              {/* Profil Agent */}
-              <div className="mt-6 border-t border-border pt-6">
-                <div className="flex items-center gap-3.5">
-                  <Image
-                    src={listing.agent.avatar || '/placeholder.svg'}
-                    alt={`Portrait de ${listing.agent.name}`}
-                    width={96}
-                    height={96}
-                    className="size-12 rounded-full object-cover ring-2 ring-border"
-                  />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-foreground">{listing.agent.name}</p>
-                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <BadgeCheck className="size-3.5 text-primary" aria-hidden="true" />
-                      {listing.agent.role} · {listing.agent.agency}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex gap-2">
-                  <Button variant="outline" className="h-10 flex-1 rounded-xl text-xs font-semibold border-border">
-                    <Phone className="mr-1.5 size-3.5" />
-                    Appeler
-                  </Button>
-                  <Button variant="secondary" className="h-10 flex-1 rounded-xl text-xs font-semibold">
-                    <MessageSquare className="mr-1.5 size-3.5" />
-                    Message
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <p className="mt-3 px-2 text-center text-xs leading-relaxed text-muted-foreground/80">
-              Real Estate garantit la vérification des titres de propriété. Ne versez aucun acompte avant visite physique.
-            </p>
-          </aside>
+          <PropertyReservationWidget listing={listing} />
         </div>
 
         {/* Section Avis "Guest Favorite" inspiré Airbnb */}
