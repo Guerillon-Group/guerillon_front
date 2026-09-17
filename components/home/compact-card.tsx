@@ -26,7 +26,7 @@ export function CompactCard({ listing }: { listing: Listing }) {
         <p className="mt-1 flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground truncate">
           <span>{listing.district}</span>
           <span aria-hidden="true">·</span>
-          {listing.reviews > 10 ? (
+          {listing.reviews && listing.reviews > 10 && typeof listing.rating === 'number' && !isNaN(listing.rating) ? (
             <>
               <span className="flex items-center gap-1 font-medium text-foreground">
                 {listing.rating.toFixed(1)}

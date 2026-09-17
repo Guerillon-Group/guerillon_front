@@ -47,12 +47,16 @@ export function RailCard({ listing, priority = false }: { listing: Listing; prio
 
         <p className="mt-1.5 flex items-center gap-1.5 text-sm text-muted-foreground">
           <span>{listing.district}</span>
-          <span aria-hidden="true">·</span>
-          <span className="flex items-center gap-1 font-medium text-foreground">
-            {listing.rating.toFixed(1)}
-            <Star className="size-3.5 fill-accent text-accent" aria-hidden="true" />
-          </span>
-          <span>({listing.reviews})</span>
+          {typeof listing.rating === 'number' && !isNaN(listing.rating) && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span className="flex items-center gap-1 font-medium text-foreground">
+                {listing.rating.toFixed(1)}
+                <Star className="size-3.5 fill-accent text-accent" aria-hidden="true" />
+              </span>
+              {listing.reviews != null && <span>({listing.reviews})</span>}
+            </>
+          )}
         </p>
 
         <p className="mt-4 flex flex-wrap items-baseline gap-x-2 text-foreground">

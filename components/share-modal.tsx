@@ -141,7 +141,8 @@ export function ShareModal({ listing }: { listing: Listing }) {
           <div className="min-w-0 flex-1">
             <p className="truncate font-semibold text-sm text-foreground">{listing.title}</p>
             <p className="mt-0.5 text-xs text-muted-foreground truncate">
-              {listing.type} à {listing.city} · ★ {listing.rating} · {listing.beds} ch · {listing.baths} sdb
+              {listing.type} à {listing.city}
+              {typeof listing.rating === 'number' && !isNaN(listing.rating) ? ` · ★ ${listing.rating.toFixed(1)}` : ''} · {listing.beds} ch · {listing.baths} sdb
             </p>
           </div>
         </div>

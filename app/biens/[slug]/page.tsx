@@ -158,7 +158,7 @@ export default async function ListingPage({ params }: { params: Promise<{ slug: 
             <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-1 font-medium text-foreground">
                 <Star className="size-4 fill-amber-400 text-amber-400" />
-                {listing.rating}
+                {typeof listing.rating === 'number' ? listing.rating.toFixed(1) : (listing.rating ?? '—')}
               </span>
               <span>·</span>
               <a href="#avis" className="font-semibold text-foreground underline underline-offset-4">
@@ -276,7 +276,7 @@ export default async function ListingPage({ params }: { params: Promise<{ slug: 
                 </div>
                 <div className="flex items-center gap-1 text-xs font-semibold">
                   <Star className="size-3.5 fill-amber-400 text-amber-400" />
-                  <span>{listing.rating}</span>
+                  <span>{typeof listing.rating === 'number' ? listing.rating.toFixed(1) : (listing.rating ?? '—')}</span>
                   <span className="text-muted-foreground">({listing.reviews})</span>
                 </div>
               </div>
@@ -366,7 +366,7 @@ export default async function ListingPage({ params }: { params: Promise<{ slug: 
           <div className="flex flex-col items-center text-center">
             <div className="relative inline-flex items-center justify-center">
               <span className="font-display text-6xl font-extrabold tracking-tight text-foreground md:text-7xl">
-                {listing.rating}
+                {typeof listing.rating === 'number' ? listing.rating.toFixed(1) : (listing.rating ?? '—')}
               </span>
             </div>
             <div className="mt-2 flex items-center gap-1 text-amber-400">
