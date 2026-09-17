@@ -235,9 +235,9 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
     try {
       const res = await bookingService.createBooking({
         booking_reference: bookingRef,
-        property_id: listing.id,
-        client_id: user.id,
-        owner_id: listing.ownerId,
+        property_id: listing.id as string,
+        client_id: user?.id as string,
+        owner_id: listing.ownerId as string,
         check_in_date: checkInDate,
         check_out_date: checkOutDate,
         guest_count: guestCount,
