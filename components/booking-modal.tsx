@@ -122,7 +122,7 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
 
     try {
       const res = await bookingService.checkAvailability({
-        property_id: listing.id,
+        property_id: listing.id as string,
         check_in_date: checkInDate,
         check_out_date: checkOutDate,
       })
@@ -153,7 +153,7 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
 
     try {
       const res = await bookingService.calculatePrice({
-        property_id: listing.id,
+        property_id: listing.id as string,
         check_in_date: checkInDate,
         check_out_date: checkOutDate,
         guest_count: guestCount,
