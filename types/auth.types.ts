@@ -51,6 +51,7 @@ export interface AuthResponse {
   user: User;
   token?: string;
   accessToken?: string;
+  access_token?: string;
   message?: string;
   requiresOtp?: boolean;
 }

@@ -53,8 +53,8 @@ export interface CalculatePriceResponse {
 export interface CreateBookingPayload {
   booking_reference?: string
   property_id: string
-  client_id?: string
-  owner_id?: string
+  client_id: string
+  owner_id: string
   check_in_date: string
   check_out_date: string
   guest_count: number

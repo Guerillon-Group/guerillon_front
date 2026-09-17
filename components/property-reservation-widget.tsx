@@ -1,15 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { BadgeCheck, Phone, Sparkles, Star } from 'lucide-react'
 
-import { BookingModal } from '@/components/booking-modal'
 import { Button } from '@/components/ui/button'
 import { formatPrice, type Listing } from '@/lib/properties'
 
 export function PropertyReservationWidget({ listing }: { listing: Listing }) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const router = useRouter()
 
   const isRental = listing.status === 'À louer' || listing.period === 'mois' || Boolean(listing.period)
 
@@ -43,7 +42,7 @@ export function PropertyReservationWidget({ listing }: { listing: Listing }) {
           {/* Action principale Réserver */}
           <div className="mt-5 flex flex-col gap-3">
             <Button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => router.push(`/biens/${listing.slug}/reservation`)}
               className="h-12 w-full rounded-2xl font-bold text-sm shadow-md transition-all hover:scale-[1.01] active:scale-[0.99] bg-primary text-primary-foreground"
             >
               {isRental ? '⚡ Lancer le Cursus de Réservation' : 'Demander un dossier d\'achat'}
@@ -88,8 +87,6 @@ export function PropertyReservationWidget({ listing }: { listing: Listing }) {
         </div>
       </aside>
 
-      {/* Modal de Cursus de Réservation Complexe */}
-      <BookingModal listing={listing} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </>
   )
 }

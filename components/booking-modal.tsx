@@ -13,7 +13,6 @@ import {
   CreditCard,
   Key,
   Lock,
-  ShieldCheck,
   Sparkles,
   User,
   X,
@@ -25,16 +24,34 @@ import { bookingService } from '@/services/booking.service'
 import { useAuthStore } from '@/stores/useAuthStore'
 import type { BookingData, PriceBreakdown } from '@/types/booking.types'
 import { Button } from '@/components/ui/button'
+import { AuthModal } from '@/components/auth/auth-modal'
 
 interface BookingModalProps {
   listing: Listing
-  isOpen: boolean
-  onClose: () => void
+  /** `page` displays the flow in the dedicated reservation route. */
+  variant?: 'modal' | 'page'
+  isOpen?: boolean
+  onClose?: () => void
 }
 
 type ModalStep = 'dates' | 'price' | 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'cancelled' | 'expired'
 
-export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function isUuid(value?: string) {
+  return Boolean(value && UUID_PATTERN.test(value))
+}
+
+function getApiErrorMessage(error: any, fallback: string) {
+  const data = error?.response?.data
+  const fieldErrors = data?.errors
+    ? Object.values(data.errors).flat().filter((message): message is string => typeof message === 'string')
+    : []
+
+  return fieldErrors[0] || data?.message || error?.message || fallback
+}
+
+export function BookingModal({ listing, variant = 'modal', isOpen = true, onClose }: BookingModalProps) {
   const { user, isAuthenticated } = useAuthStore()
   const [authError, setAuthError] = useState(false)
 
@@ -61,6 +78,7 @@ export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
   const [timeLeft, setTimeLeft] = useState<number>(15 * 60) // 15 min en secondes
   const [cancellationReason, setCancellationReason] = useState('')
   const [showCancelInput, setShowCancelInput] = useState(false)
+  const [authModalOpen, setAuthModalOpen] = useState(false)
 
   // Reset state on open/close
   useEffect(() => {
@@ -94,7 +112,7 @@ export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
     return () => clearInterval(timer)
   }, [step, timeLeft])
 
-  if (!isOpen) return null
+  if (variant === 'modal' && !isOpen) return null
 
   // 1. Check Availability
   const handleCheckAvailability = async (e: React.FormEvent) => {
@@ -198,6 +216,19 @@ export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
     setLoading(true)
     setErrorMessage(null)
 
+    if (!isAuthenticated || !isUuid(user?.id)) {
+      setAuthError(true)
+      setErrorMessage('Connexion requise : votre compte client doit disposer d’un identifiant valide pour réserver.')
+      setLoading(false)
+      return
+    }
+
+    // if (!isUuid(listing.id) || !isUuid(listing.ownerId)) {
+    //   setErrorMessage('Impossible de réserver ce bien : les identifiants du bien ou du propriétaire sont absents ou invalides.')
+    //   setLoading(false)
+    //   return
+    // }
+
     const bookingRef = `BK-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
     const totalPrice = priceBreakdown ? priceBreakdown.total_price : listing.price
 
@@ -205,50 +236,29 @@ export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
       const res = await bookingService.createBooking({
         booking_reference: bookingRef,
         property_id: listing.id,
-        client_id: user?.id || 'client-demo-id',
-        owner_id: listing.agent?.name || 'owner-demo-id',
+        client_id: user.id,
+        owner_id: listing.ownerId,
         check_in_date: checkInDate,
         check_out_date: checkOutDate,
         guest_count: guestCount,
         total_price: totalPrice,
       })
 
-      if (res.data) {
-        setBooking(res.data)
-      } else {
-        setBooking({
-          id: `bk-${Date.now()}`,
-          booking_reference: bookingRef,
-          status: 'pending',
-          expires_at: new Date(Date.now() + 15 * 60000).toISOString(),
-          check_in_date: checkInDate,
-          check_out_date: checkOutDate,
-          total_price: totalPrice,
-        })
+      if (!res.data || !isUuid(res.data.id)) {
+        throw new Error('La réservation créée ne contient pas un identifiant UUID valide.')
       }
 
+      setBooking(res.data)
       setTimeLeft(15 * 60)
       setStep('pending')
       setSuccessMessage('Réservation temporaire créée ! Bloquée pendant 15 minutes.')
     } catch (err: any) {
       if (err.response?.status === 401) {
         setAuthError(true)
-        setErrorMessage('Authentification requise (Erreur HTTP 401) : Veuillez vous connecter pour enregistrer la réservation.')
+        setErrorMessage('Authentification requise : veuillez vous connecter pour enregistrer la réservation.')
       } else {
-        console.warn('Create booking error fallback:', err)
+        setErrorMessage(getApiErrorMessage(err, 'La réservation n’a pas pu être créée.'))
       }
-      setBooking({
-        id: `bk-${Date.now()}`,
-        booking_reference: bookingRef,
-        status: 'pending',
-        expires_at: new Date(Date.now() + 15 * 60000).toISOString(),
-        check_in_date: checkInDate,
-        check_out_date: checkOutDate,
-        total_price: totalPrice,
-      })
-      setTimeLeft(15 * 60)
-      setStep('pending')
-      setSuccessMessage('Réservation temporaire créée ! Bloquée pendant 15 minutes.')
     } finally {
       setLoading(false)
     }
@@ -256,17 +266,17 @@ export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
 
   // 4. Confirm Payment
   const handleConfirmPayment = async () => {
-    if (!booking) return
+    if (!booking || !isUuid(booking.id)) {
+      setErrorMessage('Identifiant de réservation invalide. Créez une nouvelle réservation avant de poursuivre.')
+      return
+    }
     setLoading(true)
     setErrorMessage(null)
 
     try {
       const res = await bookingService.confirmPayment(booking.id)
-      if (res.data) {
-        setBooking(res.data)
-      } else {
-        setBooking((prev) => (prev ? { ...prev, status: 'confirmed', paid_at: new Date().toISOString() } : null))
-      }
+      if (!res.data) throw new Error('La confirmation de paiement ne contient aucune réservation.')
+      setBooking(res.data)
       setStep('confirmed')
       setSuccessMessage('Paiement confirmé avec succès ! Votre séjour est validé.')
     } catch (err: any) {
@@ -274,11 +284,8 @@ export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
         setAuthError(true)
         setErrorMessage('Authentification requise (Erreur HTTP 401) : Veuillez vous connecter pour confirmer le paiement.')
       } else {
-        console.warn('Confirm payment fallback:', err)
+        setErrorMessage(getApiErrorMessage(err, 'Le paiement n’a pas pu être confirmé.'))
       }
-      setBooking((prev) => (prev ? { ...prev, status: 'confirmed', paid_at: new Date().toISOString() } : null))
-      setStep('confirmed')
-      setSuccessMessage('Paiement confirmé avec succès ! Votre séjour est validé.')
     } finally {
       setLoading(false)
     }
@@ -286,22 +293,20 @@ export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
 
   // 5. Check-in
   const handleCheckIn = async () => {
-    if (!booking) return
+    if (!booking || !isUuid(booking.id)) {
+      setErrorMessage('Identifiant de réservation invalide.')
+      return
+    }
     setLoading(true)
 
     try {
       const res = await bookingService.checkIn(booking.id)
-      if (res.data) {
-        setBooking(res.data)
-      } else {
-        setBooking((prev) => (prev ? { ...prev, status: 'checked_in', checked_in_at: new Date().toISOString() } : null))
-      }
+      if (!res.data) throw new Error('La réponse de check-in est incomplète.')
+      setBooking(res.data)
       setStep('checked_in')
       setSuccessMessage('Check-in effectué avec succès ! Bon séjour dans le logement.')
-    } catch (err) {
-      setBooking((prev) => (prev ? { ...prev, status: 'checked_in', checked_in_at: new Date().toISOString() } : null))
-      setStep('checked_in')
-      setSuccessMessage('Check-in effectué avec succès ! Bon séjour dans le logement.')
+    } catch (err: any) {
+      setErrorMessage(getApiErrorMessage(err, 'Le check-in n’a pas pu être effectué.'))
     } finally {
       setLoading(false)
     }
@@ -309,22 +314,20 @@ export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
 
   // 6. Check-out
   const handleCheckOut = async () => {
-    if (!booking) return
+    if (!booking || !isUuid(booking.id)) {
+      setErrorMessage('Identifiant de réservation invalide.')
+      return
+    }
     setLoading(true)
 
     try {
       const res = await bookingService.checkOut(booking.id)
-      if (res.data) {
-        setBooking(res.data)
-      } else {
-        setBooking((prev) => (prev ? { ...prev, status: 'completed', checked_out_at: new Date().toISOString() } : null))
-      }
+      if (!res.data) throw new Error('La réponse de check-out est incomplète.')
+      setBooking(res.data)
       setStep('completed')
       setSuccessMessage('Check-out effectué. Séjour clôturé avec succès et avis débloqué !')
-    } catch (err) {
-      setBooking((prev) => (prev ? { ...prev, status: 'completed', checked_out_at: new Date().toISOString() } : null))
-      setStep('completed')
-      setSuccessMessage('Check-out effectué. Séjour clôturé avec succès et avis débloqué !')
+    } catch (err: any) {
+      setErrorMessage(getApiErrorMessage(err, 'Le check-out n’a pas pu être effectué.'))
     } finally {
       setLoading(false)
     }
@@ -332,22 +335,20 @@ export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
 
   // 7. Cancel
   const handleCancelBooking = async () => {
-    if (!booking) return
+    if (!booking || !isUuid(booking.id)) {
+      setErrorMessage('Identifiant de réservation invalide.')
+      return
+    }
     setLoading(true)
 
     try {
       const res = await bookingService.cancelBooking(booking.id, cancellationReason)
-      if (res.data) {
-        setBooking(res.data)
-      } else {
-        setBooking((prev) => (prev ? { ...prev, status: 'cancelled', cancelled_at: new Date().toISOString() } : null))
-      }
+      if (!res.data) throw new Error('La réponse d’annulation est incomplète.')
+      setBooking(res.data)
       setStep('cancelled')
       setErrorMessage('La réservation a été annulée. Les dates ont été libérées.')
-    } catch (err) {
-      setBooking((prev) => (prev ? { ...prev, status: 'cancelled', cancelled_at: new Date().toISOString() } : null))
-      setStep('cancelled')
-      setErrorMessage('La réservation a été annulée. Les dates ont été libérées.')
+    } catch (err: any) {
+      setErrorMessage(getApiErrorMessage(err, 'La réservation n’a pas pu être annulée.'))
     } finally {
       setLoading(false)
       setShowCancelInput(false)
@@ -362,9 +363,19 @@ export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md transition-all">
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-border bg-card shadow-2xl transition-all">
-        {/* Header Modal */}
+    <div
+      className={cn(
+        'flex w-full justify-center',
+        variant === 'modal'
+          ? 'fixed inset-0 z-50 items-center bg-background/80 p-4 backdrop-blur-md transition-all'
+          : 'min-h-[calc(100dvh-5rem)] items-start bg-secondary/20 px-4 py-8 sm:px-6 md:py-12',
+      )}
+    >
+      <div className={cn(
+        'relative w-full max-w-2xl overflow-hidden border border-border bg-card transition-all',
+        variant === 'modal' ? 'rounded-3xl shadow-2xl' : 'rounded-3xl shadow-xl shadow-black/5',
+      )}>
+        {/* En-tête du parcours */}
         <div className="flex items-center justify-between border-b border-border p-5 bg-secondary/30">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -375,13 +386,23 @@ export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
               <p className="text-xs text-muted-foreground">{listing.title} · {listing.city}</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex size-9 items-center justify-center rounded-full bg-secondary text-foreground hover:bg-secondary/80 transition-colors"
-          >
-            <X className="size-4" />
-          </button>
+          {variant === 'page' ? (
+            <Link
+              href={`/biens/${listing.slug}`}
+              className="rounded-xl bg-secondary px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-secondary/80"
+            >
+              Retour au bien
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fermer la réservation"
+              className="flex size-9 items-center justify-center rounded-full bg-secondary text-foreground hover:bg-secondary/80 transition-colors"
+            >
+              <X className="size-4" />
+            </button>
+          )}
         </div>
 
         {/* Dynamic Stepper Bar */}
@@ -423,7 +444,7 @@ export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
         </div>
 
         {/* Body Content */}
-        <div className="p-6 max-h-[80vh] overflow-y-auto">
+        <div className={cn('p-6', variant === 'modal' && 'max-h-[80vh] overflow-y-auto')}>
           {/* Auth Warning Banner */}
           {(authError || !isAuthenticated) && (
             <div className="mb-4 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl bg-amber-500/10 p-4 text-xs border border-amber-500/20 text-amber-900 dark:text-amber-200">
@@ -434,12 +455,13 @@ export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
                   <p className="text-xs text-muted-foreground mt-0.5">Vous devez être connecté avec un compte client pour effectuer la réservation et le paiement.</p>
                 </div>
               </div>
-              <Link
-                href={`/login?redirect=${encodeURIComponent(`/biens/${listing.slug}`)}`}
+              <button
+                type="button"
+                onClick={() => setAuthModalOpen(true)}
                 className="shrink-0 rounded-xl bg-amber-600 px-4 py-2 font-bold text-white hover:bg-amber-700 transition-colors"
               >
                 Se connecter →
-              </Link>
+              </button>
             </div>
           )}
 
@@ -752,6 +774,7 @@ export function BookingModal({ listing, isOpen, onClose }: BookingModalProps) {
           )}
         </div>
       </div>
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </div>
   )
 }

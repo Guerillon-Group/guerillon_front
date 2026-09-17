@@ -9,8 +9,17 @@ import {
   ResendOtpPayload,
   ResetPasswordPayload,
   VerifyOtpPayload,
+  AuthResponse,
 } from '../types/auth.types';
 import { ApiErrorResponse } from '../types/api.types';
+
+function persistAuthentication(response: AuthResponse, setAuth: (user: AuthResponse['user'], token?: string) => void) {
+  const token = response.token || response.accessToken || response.access_token;
+  if (!token || !response.user?.id) {
+    throw new Error('Connexion impossible : le serveur n’a pas retourné de session valide.');
+  }
+  setAuth(response.user, token);
+}
 
 export function useAuthMutations() {
   const [loading, setLoading] = useState(false);
@@ -23,9 +32,7 @@ export function useAuthMutations() {
     setError(null);
     try {
       const response = await authService.login(credentials);
-      if (response.token && response.user) {
-        setAuth(response.user, response.token);
-      }
+      persistAuthentication(response, setAuth);
       return response;
     } catch (err) {
       const parsedError = parseApiError(err);
@@ -41,9 +48,7 @@ export function useAuthMutations() {
     setError(null);
     try {
       const response = await authService.register(data);
-      if (response.token && response.user) {
-        setAuth(response.user, response.token);
-      }
+      persistAuthentication(response, setAuth);
       return response;
     } catch (err) {
       const parsedError = parseApiError(err);
@@ -59,9 +64,7 @@ export function useAuthMutations() {
     setError(null);
     try {
       const response = await authService.verifyOtp(payload);
-      if (response.token && response.user) {
-        setAuth(response.user, response.token);
-      }
+      persistAuthentication(response, setAuth);
       return response;
     } catch (err) {
       const parsedError = parseApiError(err);
@@ -119,9 +122,7 @@ export function useAuthMutations() {
     setError(null);
     try {
       const response = await authService.googleLogin(googleToken);
-      if (response.token && response.user) {
-        setAuth(response.user, response.token);
-      }
+      persistAuthentication(response, setAuth);
       return response;
     } catch (err) {
       const parsedError = parseApiError(err);

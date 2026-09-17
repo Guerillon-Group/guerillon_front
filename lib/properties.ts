@@ -148,6 +148,10 @@ export function apiPropertyToListing(p: any): Listing {
 
   return {
     id: p.id,
+    // Ces UUID sont nécessaires lors de la création d'une réservation.
+    // Ne jamais utiliser le nom affiché de l'agent à la place de son identifiant.
+    ownerId: p.owner_id || p.owner?.id,
+    agentId: p.agent_id || p.agent?.id,
     slug: p.slug || p.id,
     title: p.title || 'Propriété Immobilière',
     city: p.city || 'Goma',

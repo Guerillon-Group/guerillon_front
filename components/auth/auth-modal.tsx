@@ -130,10 +130,10 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           setStep('otp')
         }
       } else {
-        // Envoi OTP Téléphone
-        const fullPhone = `${countryCode}${phone.trim()}`
-        await resendOtpMutation({ email: fullPhone })
-        setStep('otp')
+        // Le contrat API actuel n'expose qu'un OTP e-mail (`email` est obligatoire).
+        // Ne pas envoyer un numéro de téléphone dans ce champ : cela créait une
+        // fausse tentative de connexion et une erreur de validation côté serveur.
+        setErrorMessage('La connexion par SMS n’est pas encore disponible. Utilisez votre adresse e-mail.')
       }
     } catch (err: any) {
       setErrorMessage(err?.message || 'Une erreur est survenue lors de la connexion.')
