@@ -327,6 +327,7 @@ function FilterPanel({
               <div className="flex flex-wrap gap-2">
                 {(Object.keys(typeIcons) as Listing['type'][]).map((t) => {
                   const Icon = typeIcons[t]
+                  if (!Icon) return null
                   return (
                     <Chip key={t} active={draft.types.includes(t)} onClick={() => toggle('types', t)}>
                       <Icon className="size-4" aria-hidden="true" />

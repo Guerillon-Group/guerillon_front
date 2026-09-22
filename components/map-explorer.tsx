@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { BadgeCheck, Bath, BedDouble, Maximize, SlidersHorizontal, X } from 'lucide-react'
 
 import { AdvancedFilters } from '@/components/filters/advanced-filters'
@@ -24,9 +25,17 @@ import { propertyService } from '@/services/property.service'
 const types = ['Tout', 'Appartement', 'Villa', 'Maison', 'Terrain', 'Bureau'] as const
 
 export function MapExplorer() {
+  const searchParams = useSearchParams()
+  const searchLabel = searchParams.get('q')?.trim() || ''
+  const searchQuery = searchLabel.toLocaleLowerCase('fr-FR')
+  const initialTransaction: Transaction = searchParams.get('transaction') === 'À louer'
+    ? 'À louer'
+    : searchParams.get('transaction') === 'À vendre'
+      ? 'À vendre'
+      : 'Tout'
   const [properties, setProperties] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
-  const [filters, setFilters] = useState<Filters>(() => defaultFilters('Tout', []))
+  const [filters, setFilters] = useState<Filters>(() => defaultFilters(initialTransaction, []))
   const [active, setActive] = useState<string | null>(null)
   const [showList, setShowList] = useState(false)
 
@@ -54,7 +63,15 @@ export function MapExplorer() {
     }
   }, [])
 
-  const filtered = useMemo(() => applyFilters(properties, filters), [properties, filters])
+  const filtered = useMemo(() => {
+    const matchingFilters = applyFilters(properties, filters)
+    if (!searchQuery) return matchingFilters
+
+    return matchingFilters.filter((listing) =>
+      [listing.title, listing.city, listing.district, listing.address]
+        .some((value) => value?.toLocaleLowerCase('fr-FR').includes(searchQuery)),
+    )
+  }, [properties, filters, searchQuery])
   const activeListing = useMemo(() => filtered.find((l) => l.slug === active) || properties.find((l) => l.slug === active), [filtered, properties, active])
   const chips = filterChips(filters)
 
@@ -93,6 +110,13 @@ export function MapExplorer() {
               </button>
             ))}
           </div>
+
+          {searchLabel && (
+            <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-sm text-muted-foreground">
+              <span className="text-foreground">Lieu</span>
+              <span className="max-w-40 truncate font-medium text-foreground">{searchLabel}</span>
+            </div>
+          )}
 
           <div className="hide-scrollbar flex flex-1 items-center gap-2 overflow-x-auto">
             {types.map((t) => {

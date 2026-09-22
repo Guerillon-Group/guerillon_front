@@ -6,14 +6,14 @@ import { ChevronDown, Loader2, MapPin, Search } from 'lucide-react'
 
 import { cities } from '@/lib/properties'
 
-const intents = ['Acheter', 'Louer'] as const
+const intents = ['Louer', 'Acheter'] as const
 const budgets = ['Indifférent', 'Jusqu’à 1 000 $', 'Jusqu’à 2 500 $', 'Jusqu’à 100 000 $', 'Jusqu’à 400 000 $']
 const moments = ['Dès que possible', 'Sous 1 mois', 'Sous 3 mois', 'Cette année']
 
 export function HeroSearch() {
   const router = useRouter()
   const [where, setWhere] = useState('')
-  const [intent, setIntent] = useState<string>(intents[0])
+  const [intent, setIntent] = useState<string>('Louer')
   const [budget, setBudget] = useState(budgets[0])
   const [moment, setMoment] = useState(moments[0])
   const [pending, startTransition] = useTransition()
@@ -24,11 +24,12 @@ export function HeroSearch() {
         e.preventDefault()
         const query = new URLSearchParams()
         if (where.trim()) query.set('q', where.trim())
+        query.set('transaction', intent === 'Louer' ? 'À louer' : 'À vendre')
         startTransition(() => router.push(query.size ? `/carte?${query}` : '/carte'))
       }}
       aria-label="Rechercher un bien"
       aria-busy={pending}
-      className="relative flex w-full max-w-full overflow-hidden flex-col gap-2 rounded-2xl border border-border/80 bg-card p-3 shadow-xl shadow-black/5 transition-all duration-300 focus-within:border-primary/50 focus-within:shadow-2xl md:flex-row md:items-stretch md:gap-px md:rounded-full md:p-1.5 md:border-2"
+      className="relative flex w-full max-w-full flex-col gap-2 rounded-[1.35rem] border border-white/80 bg-white p-3 shadow-[0_18px_45px_rgba(22,56,30,0.16)] transition-all duration-300 focus-within:border-primary/50 focus-within:shadow-[0_22px_55px_rgba(22,56,30,0.22)] md:flex-row md:items-stretch md:gap-px md:rounded-full md:p-2"
     >
       {pending && (
         <span
@@ -39,7 +40,7 @@ export function HeroSearch() {
         </span>
       )}
 
-      <div className="flex min-w-0 flex-[1.4] flex-col justify-center rounded-xl bg-secondary/40 px-4 py-2.5 md:rounded-none md:bg-transparent md:py-2">
+      <div className="flex min-w-0 flex-[1.4] flex-col justify-center rounded-xl bg-[#f2f6f1] px-4 py-2.5 md:rounded-full md:bg-transparent md:py-2">
         <label htmlFor="hero-where" className="flex items-center gap-1.5 text-xs font-bold text-[#16381e]">
           <MapPin className="size-3.5 text-[#c5a059]" />
           Où
@@ -102,7 +103,7 @@ function SelectField({
   options: string[]
 }) {
   return (
-    <div className="flex min-w-0 flex-1 flex-col justify-center rounded-xl bg-secondary/40 px-4 py-2.5 md:rounded-none md:bg-transparent md:py-2">
+    <div className="flex min-w-0 flex-1 flex-col justify-center rounded-xl bg-[#f2f6f1] px-4 py-2.5 md:rounded-none md:bg-transparent md:py-2">
       <span className="text-xs font-bold text-[#16381e]">{label}</span>
       <div className="relative mt-0.5 flex items-center">
         <select

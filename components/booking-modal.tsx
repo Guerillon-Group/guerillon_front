@@ -13,6 +13,8 @@ import {
   CreditCard,
   Key,
   Lock,
+  MapPin,
+  ShieldCheck,
   Sparkles,
   User,
   X,
@@ -25,6 +27,7 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import type { BookingData, PriceBreakdown } from '@/types/booking.types'
 import { Button } from '@/components/ui/button'
 import { AuthModal } from '@/components/auth/auth-modal'
+import { BookingLottieIcon } from '@/components/booking-lottie-icon'
 
 interface BookingModalProps {
   listing: Listing
@@ -35,6 +38,20 @@ interface BookingModalProps {
 }
 
 type ModalStep = 'dates' | 'price' | 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'cancelled' | 'expired'
+
+const bookingSteps = [
+  { id: 'dates', label: 'Votre séjour', hint: 'Dates et voyageurs' },
+  { id: 'price', label: 'Votre devis', hint: 'Montant détaillé' },
+  { id: 'pending', label: 'Votre option', hint: 'Paiement sécurisé' },
+  { id: 'confirmed', label: 'Votre arrivée', hint: 'Séjour confirmé' },
+] as const
+
+function getStepIndex(step: ModalStep) {
+  if (step === 'dates') return 0
+  if (step === 'price') return 1
+  if (step === 'pending') return 2
+  return 3
+}
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -362,89 +379,84 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
+  const currentStepIndex = getStepIndex(step)
+
   return (
     <div
       className={cn(
         'flex w-full justify-center',
         variant === 'modal'
           ? 'fixed inset-0 z-50 items-center bg-background/80 p-4 backdrop-blur-md transition-all'
-          : 'min-h-[calc(100dvh-5rem)] items-start bg-secondary/20 px-4 py-8 sm:px-6 md:py-12',
+          : 'min-h-[calc(100dvh-5rem)] items-start bg-[#f6f8f3] px-4 py-8 sm:px-6 md:py-12',
       )}
     >
       <div className={cn(
-        'relative w-full max-w-2xl overflow-hidden border border-border bg-card transition-all',
-        variant === 'modal' ? 'rounded-3xl shadow-2xl' : 'rounded-3xl shadow-xl shadow-black/5',
+        'relative w-full max-w-3xl overflow-hidden border border-[#16381e]/10 bg-card transition-all',
+        variant === 'modal' ? 'rounded-[28px] shadow-2xl' : 'rounded-[32px] shadow-[0_24px_70px_rgba(22,56,30,0.12)]',
       )}>
         {/* En-tête du parcours */}
-        <div className="flex items-center justify-between border-b border-border p-5 bg-secondary/30">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <Sparkles className="size-5" />
+        <div className="relative overflow-hidden bg-[#16381e] px-5 py-6 text-white sm:px-8 sm:py-7">
+          <div className="pointer-events-none absolute -right-7 -top-9 size-40 rounded-full border border-white/10" />
+          <div className="pointer-events-none absolute -bottom-16 right-24 size-40 rounded-full bg-[#c5a059]/15 blur-2xl" />
+          <div className="relative flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="relative flex size-12 shrink-0 items-center justify-center rounded-2xl bg-white/10">
+                <BookingLottieIcon tone="gold" className="absolute size-11 opacity-70" />
+                <Calendar className="relative size-5 text-[#f6d79b]" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold tracking-[0.16em] text-[#f6d79b] uppercase">Réservation à Goma</p>
+                <h3 className="mt-1 font-display text-xl font-bold tracking-tight">Votre séjour, en toute clarté.</h3>
+                <p className="mt-1 flex items-center gap-1.5 text-xs text-white/65"><MapPin className="size-3.5" /> {listing.district}, {listing.city}</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-display text-lg font-bold text-foreground">Processus de Réservation</h3>
-              <p className="text-xs text-muted-foreground">{listing.title} · {listing.city}</p>
-            </div>
-          </div>
           {variant === 'page' ? (
             <Link
               href={`/biens/${listing.slug}`}
-              className="rounded-xl bg-secondary px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-secondary/80"
+              className="shrink-0 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-white/20"
             >
-              Retour au bien
+              Retour
             </Link>
           ) : (
             <button
               type="button"
               onClick={onClose}
               aria-label="Fermer la réservation"
-              className="flex size-9 items-center justify-center rounded-full bg-secondary text-foreground hover:bg-secondary/80 transition-colors"
+              className="flex size-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
             >
               <X className="size-4" />
             </button>
           )}
         </div>
+        </div>
 
-        {/* Dynamic Stepper Bar */}
-        <div className="grid grid-cols-4 border-b border-border bg-background text-center text-xs font-semibold">
-          <div
-            className={cn(
-              'py-2.5 border-b-2 transition-all',
-              step === 'dates' ? 'border-primary text-primary font-bold' : 'border-transparent text-muted-foreground',
-            )}
-          >
-            1. Dates & Dispo
-          </div>
-          <div
-            className={cn(
-              'py-2.5 border-b-2 transition-all',
-              step === 'price' ? 'border-primary text-primary font-bold' : 'border-transparent text-muted-foreground',
-            )}
-          >
-            2. Calcul TTC
-          </div>
-          <div
-            className={cn(
-              'py-2.5 border-b-2 transition-all',
-              step === 'pending' ? 'border-amber-500 text-amber-500 font-bold' : 'border-transparent text-muted-foreground',
-            )}
-          >
-            3. Timer (15m)
-          </div>
-          <div
-            className={cn(
-              'py-2.5 border-b-2 transition-all',
-              ['confirmed', 'checked_in', 'completed'].includes(step)
-                ? 'border-emerald-500 text-emerald-600 font-bold'
-                : 'border-transparent text-muted-foreground',
-            )}
-          >
-            4. Statut & Clôture
-          </div>
+        {/* Progression du parcours */}
+        <div className="border-b border-[#16381e]/10 bg-white px-5 py-4 sm:px-8">
+          <ol className="grid grid-cols-4 gap-2" aria-label="Étapes de réservation">
+            {bookingSteps.map((item, index) => {
+              const isCurrent = index === currentStepIndex
+              const isComplete = index < currentStepIndex
+              return (
+                <li key={item.id} className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      'flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors',
+                      isComplete ? 'bg-[#16381e] text-white' : isCurrent ? 'bg-[#c5a059] text-[#16381e]' : 'bg-[#eef2ec] text-[#7a857b]',
+                    )}>
+                      {isComplete ? <Check className="size-3.5" /> : index + 1}
+                    </span>
+                    {index < bookingSteps.length - 1 && <span className={cn('hidden h-px flex-1 sm:block', isComplete ? 'bg-[#16381e]' : 'bg-[#dce3da]')} />}
+                  </div>
+                  <p className={cn('mt-2 truncate text-[11px] font-bold sm:text-xs', isCurrent || isComplete ? 'text-[#16381e]' : 'text-muted-foreground')}>{item.label}</p>
+                  <p className="hidden truncate text-[10px] text-muted-foreground sm:block">{item.hint}</p>
+                </li>
+              )
+            })}
+          </ol>
         </div>
 
         {/* Body Content */}
-        <div className={cn('p-6', variant === 'modal' && 'max-h-[80vh] overflow-y-auto')}>
+        <div className={cn('p-5 sm:p-8', variant === 'modal' && 'max-h-[80vh] overflow-y-auto')}>
           {/* Auth Warning Banner */}
           {(authError || !isAuthenticated) && (
             <div className="mb-4 flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl bg-amber-500/10 p-4 text-xs border border-amber-500/20 text-amber-900 dark:text-amber-200">
@@ -481,24 +493,30 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
 
           {/* STEP 1: DATES & AVAILABILITY CHECK */}
           {step === 'dates' && (
-            <form onSubmit={handleCheckAvailability} className="flex flex-col gap-4">
-              <div className="flex items-center gap-4 rounded-2xl bg-secondary/50 p-3.5 border border-border">
-                <div className="relative size-16 shrink-0 overflow-hidden rounded-xl">
+            <form onSubmit={handleCheckAvailability} noValidate className="flex flex-col gap-5">
+              <div className="flex items-center gap-4 rounded-[22px] border border-[#16381e]/10 bg-[#f6f8f3] p-4">
+                <div className="relative size-[72px] shrink-0 overflow-hidden rounded-2xl">
                   <Image src={listing.image || '/placeholder.svg'} alt={listing.title} fill className="object-cover" />
                 </div>
                 <div className="min-w-0">
-                  <h4 className="font-bold text-sm text-foreground truncate">{listing.title}</h4>
-                  <p className="text-xs text-muted-foreground">{listing.district}, {listing.city}</p>
-                  <p className="mt-1 text-xs font-semibold text-primary">{formatPrice(listing)} / nuit</p>
+                  <h4 className="font-display text-base font-bold text-foreground truncate">{listing.title}</h4>
+                  <p className="mt-1 text-xs text-muted-foreground">{listing.district}, {listing.city}</p>
+                  <p className="mt-2 text-sm font-bold text-[#16381e]">{formatPrice(listing)} <span className="text-xs font-medium text-muted-foreground">/ nuit</span></p>
                 </div>
+              </div>
+
+              <div>
+                <h4 className="font-display text-lg font-bold text-foreground">Choisissez vos dates</h4>
+                <p className="mt-1 text-sm text-muted-foreground">Nous vérifions la disponibilité avant de vous engager.</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Date d'arrivée</label>
-                  <div className="flex items-center gap-2 rounded-2xl border border-border bg-background p-3 text-xs font-semibold text-foreground">
-                    <Calendar className="size-4 text-muted-foreground shrink-0" />
+                  <label htmlFor="booking-check-in" className="text-xs font-bold text-[#16381e]">Arrivée</label>
+                  <div className="flex items-center gap-2 rounded-2xl border border-[#16381e]/15 bg-white p-3 text-xs font-semibold text-foreground transition-colors focus-within:border-[#16381e] focus-within:ring-2 focus-within:ring-[#16381e]/10">
+                    <Calendar className="size-4 text-[#c5a059] shrink-0" />
                     <input
+                      id="booking-check-in"
                       type="date"
                       min={todayStr}
                       value={checkInDate}
@@ -510,10 +528,11 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Date de départ</label>
-                  <div className="flex items-center gap-2 rounded-2xl border border-border bg-background p-3 text-xs font-semibold text-foreground">
-                    <Calendar className="size-4 text-muted-foreground shrink-0" />
+                  <label htmlFor="booking-check-out" className="text-xs font-bold text-[#16381e]">Départ</label>
+                  <div className="flex items-center gap-2 rounded-2xl border border-[#16381e]/15 bg-white p-3 text-xs font-semibold text-foreground transition-colors focus-within:border-[#16381e] focus-within:ring-2 focus-within:ring-[#16381e]/10">
+                    <Calendar className="size-4 text-[#c5a059] shrink-0" />
                     <input
+                      id="booking-check-out"
                       type="date"
                       min={checkInDate}
                       value={checkOutDate}
@@ -526,10 +545,11 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Nombre de voyageurs</label>
-                <div className="flex items-center gap-2 rounded-2xl border border-border bg-background p-3 text-xs font-semibold text-foreground">
-                  <User className="size-4 text-muted-foreground shrink-0" />
+                <label htmlFor="booking-guests" className="text-xs font-bold text-[#16381e]">Voyageurs</label>
+                <div className="flex items-center gap-2 rounded-2xl border border-[#16381e]/15 bg-white p-3 text-xs font-semibold text-foreground transition-colors focus-within:border-[#16381e] focus-within:ring-2 focus-within:ring-[#16381e]/10">
+                  <User className="size-4 text-[#c5a059] shrink-0" />
                   <input
+                    id="booking-guests"
                     type="number"
                     min={1}
                     max={10}
@@ -544,10 +564,12 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
               <Button
                 type="submit"
                 disabled={loading}
-                className="mt-2 h-12 w-full rounded-2xl font-bold text-sm shadow-md transition-all"
+                className="mt-1 h-13 w-full rounded-2xl bg-[#16381e] font-bold text-sm text-white shadow-[0_12px_24px_rgba(22,56,30,0.2)] transition-all hover:bg-[#214c2b]"
               >
-                {loading ? 'Vérification en cours...' : '⚡ Vérifier la disponibilité'}
+                <ShieldCheck className="mr-2 size-4" />
+                {loading ? 'Vérification en cours...' : 'Vérifier la disponibilité'}
               </Button>
+              <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground"><Lock className="size-3.5 text-[#c5a059]" /> Aucun débit à cette étape.</p>
             </form>
           )}
 
@@ -610,38 +632,37 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
 
           {/* STEP 3: PENDING RESERVATION & 15-MIN TIMER */}
           {step === 'pending' && booking && (
-            <div className="flex flex-col items-center text-center gap-4">
-              <div className="flex items-center gap-2 rounded-full bg-amber-500/10 px-4 py-2 text-xs font-bold text-amber-700 dark:text-amber-400 border border-amber-500/20">
-                <Clock className="size-4 animate-spin text-amber-500" />
-                <span>Statut : PENDING (Réservation temporaire)</span>
+            <div className="flex flex-col items-center text-center gap-5">
+              <div className="flex items-center gap-2 rounded-full border border-[#c5a059]/30 bg-[#c5a059]/10 px-4 py-2 text-xs font-bold text-[#7b5b20]">
+                <Clock className="size-4 text-[#c5a059]" />
+                <span>Option de réservation active</span>
               </div>
 
-              <div className="flex flex-col items-center justify-center rounded-3xl bg-secondary/60 p-6 border border-border w-full">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Temps restant pour régler le paiement
-                </p>
-                <span className="mt-2 font-display text-5xl font-extrabold text-amber-600 dark:text-amber-400 tracking-tight">
+              <div className="relative flex w-full flex-col items-center justify-center overflow-hidden rounded-[28px] border border-[#16381e]/10 bg-[#f6f8f3] p-7">
+                <BookingLottieIcon tone="gold" className="absolute size-40 opacity-15" />
+                <p className="relative text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">Temps restant pour payer</p>
+                <span className="relative mt-2 font-display text-5xl font-extrabold tracking-tight text-[#16381e]">
                   {formatTimer(timeLeft)}
                 </span>
-                <p className="mt-2 text-xs text-muted-foreground max-w-sm">
-                  Réf: <span className="font-bold text-foreground">{booking.booking_reference}</span> · Si le paiement n'est pas effectué dans les 15 minutes, les dates seront automatiquement libérées (`EXPIRED`).
+                <p className="relative mt-3 max-w-sm text-xs leading-relaxed text-muted-foreground">
+                  Votre logement est retenu. Sans paiement dans ce délai, les dates seront de nouveau disponibles.
                 </p>
               </div>
 
-              <div className="w-full rounded-2xl border border-border p-4 text-xs text-left flex flex-col gap-1.5">
-                <p><strong>Arrivée :</strong> {booking.check_in_date}</p>
-                <p><strong>Départ :</strong> {booking.check_out_date}</p>
-                <p><strong>Montant Total TTC :</strong> ${Number(booking.total_price).toFixed(2)} USD</p>
+              <div className="w-full rounded-2xl border border-[#16381e]/10 bg-white p-4 text-left text-xs leading-relaxed text-muted-foreground">
+                <div className="flex items-center justify-between"><span>Référence</span><strong className="text-foreground">{booking.booking_reference}</strong></div>
+                <div className="mt-2 flex items-center justify-between"><span>Séjour</span><strong className="text-foreground">{booking.check_in_date} → {booking.check_out_date}</strong></div>
+                <div className="mt-2 flex items-center justify-between border-t border-[#16381e]/10 pt-3"><span>Total TTC</span><strong className="text-base text-[#16381e]">${Number(booking.total_price).toFixed(2)} USD</strong></div>
               </div>
 
               <div className="flex flex-col gap-2 w-full mt-2">
                 <Button
                   onClick={handleConfirmPayment}
                   disabled={loading}
-                  className="h-12 w-full rounded-2xl font-bold text-sm bg-emerald-700 hover:bg-emerald-800 text-white shadow-lg"
+                  className="h-12 w-full rounded-2xl bg-[#16381e] font-bold text-sm text-white shadow-[0_12px_24px_rgba(22,56,30,0.2)] hover:bg-[#214c2b]"
                 >
                   <CreditCard className="mr-2 size-4" />
-                  {loading ? 'Traitement du paiement...' : '💳 Confirmer & Payer la Réservation'}
+                  {loading ? 'Traitement du paiement...' : 'Confirmer et payer'}
                 </Button>
 
                 <button

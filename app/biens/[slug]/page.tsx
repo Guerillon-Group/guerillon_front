@@ -32,7 +32,6 @@ import { PropertyReservationWidget } from '@/components/property-reservation-wid
 import { ShareModal } from '@/components/share-modal'
 import { SiteFooter } from '@/components/site-footer'
 import { SiteHeader } from '@/components/site-header'
-import { Button } from '@/components/ui/button'
 import { apiPropertyToListing, formatPrice, getListingAsync } from '@/lib/properties'
 import { propertyService } from '@/services/property.service'
 
@@ -229,9 +228,6 @@ export default async function ListingPage({ params }: { params: Promise<{ slug: 
                   </li>
                 ))}
               </ul>
-              <Button variant="outline" className="mt-6 rounded-xl border-border font-medium">
-                Afficher tous les équipements
-              </Button>
             </section>
 
             {/* Emplacement inspiré d'Airbnb ("Where you'll be") */}

@@ -6,11 +6,15 @@ import type { Listing } from '@/lib/properties'
 
 /** Carte compacte « reprendre votre recherche » : vignette + méta courte. */
 export function CompactCard({ listing }: { listing: Listing }) {
+  const imageSrc = listing.title.includes(' ') && Boolean(listing.image) && !listing.image.includes('placeholder')
+    ? listing.image
+    : '/images/appartement-goma.png'
+
   return (
     <article className="group flex w-full max-w-full items-center gap-3 rounded-xl bg-secondary p-3 transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-card hover:shadow-lg hover:shadow-foreground/5">
       <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-card sm:size-24">
         <Image
-          src={listing.image || '/placeholder.svg'}
+          src={imageSrc}
           alt={`${listing.title}, ${listing.district}`}
           fill
           sizes="96px"

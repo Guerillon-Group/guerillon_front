@@ -12,6 +12,13 @@ export function RailCard({ listing, priority = false }: { listing: Listing; prio
   const price = priceParts(listing)
   const [loaded, setLoaded] = useState(false)
   const [saved, setSaved] = useState(false)
+  // Certaines anciennes annonces de démonstration renvoient un fichier image
+  // techniquement valide mais visuellement inutilisable. Pour ces données sans
+  // titre descriptif, on préfère l'image d'appartement locale au média corrompu.
+  const initialImage = listing.title.includes(' ') && Boolean(listing.image) && !listing.image.includes('placeholder')
+    ? listing.image
+    : '/images/appartement-goma.png'
+  const [imageSrc, setImageSrc] = useState(initialImage)
 
   return (
     <article className="group relative flex flex-col">
@@ -19,12 +26,16 @@ export function RailCard({ listing, priority = false }: { listing: Listing; prio
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-secondary transition-shadow duration-300 group-hover:shadow-xl group-hover:shadow-foreground/10 group-focus-visible:ring-3 group-focus-visible:ring-ring/50">
           {!loaded && <span aria-hidden="true" className="skeleton absolute inset-0" />}
           <Image
-            src={listing.image || '/placeholder.svg'}
+            src={imageSrc}
             alt={`${listing.title} à ${listing.district}, ${listing.city}`}
             fill
             priority={priority}
             sizes="(max-width: 640px) 78vw, (max-width: 1024px) 44vw, 24vw"
             onLoad={() => setLoaded(true)}
+            onError={() => {
+              setLoaded(true)
+              setImageSrc('/images/appartement-goma.png')
+            }}
             className={cn(
               'object-cover transition-all duration-700 ease-out group-hover:scale-[1.06]',
               loaded ? 'scale-100 opacity-100 blur-0' : 'scale-105 opacity-0 blur-sm',
