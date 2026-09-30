@@ -430,29 +430,57 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
         </div>
         </div>
 
-        {/* Progression du parcours */}
-        <div className="border-b border-[#16381e]/10 bg-white px-5 py-4 sm:px-8">
+        {/* Progression du parcours (Style Stepper Épuré avec Barre de Progression) */}
+        <div className="border-b border-[#16381e]/10 bg-white px-5 pt-5 pb-4 sm:px-8">
           <ol className="grid grid-cols-4 gap-2" aria-label="Étapes de réservation">
             {bookingSteps.map((item, index) => {
               const isCurrent = index === currentStepIndex
               const isComplete = index < currentStepIndex
               return (
                 <li key={item.id} className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      'flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors',
-                      isComplete ? 'bg-[#16381e] text-white' : isCurrent ? 'bg-[#c5a059] text-[#16381e]' : 'bg-[#eef2ec] text-[#7a857b]',
-                    )}>
-                      {isComplete ? <Check className="size-3.5" /> : index + 1}
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={cn(
+                        'text-xs transition-colors',
+                        isCurrent
+                          ? 'font-extrabold text-[#16381e]'
+                          : isComplete
+                            ? 'font-bold text-[#16381e]/80'
+                            : 'font-medium text-muted-foreground/60',
+                      )}
+                    >
+                      {index + 1}.
                     </span>
-                    {index < bookingSteps.length - 1 && <span className={cn('hidden h-px flex-1 sm:block', isComplete ? 'bg-[#16381e]' : 'bg-[#dce3da]')} />}
+                    <span
+                      className={cn(
+                        'truncate text-xs transition-colors',
+                        isCurrent
+                          ? 'font-bold text-[#16381e]'
+                          : isComplete
+                            ? 'font-semibold text-[#16381e]/80'
+                            : 'font-medium text-muted-foreground/60',
+                      )}
+                    >
+                      {item.label}
+                    </span>
                   </div>
-                  <p className={cn('mt-2 truncate text-[11px] font-bold sm:text-xs', isCurrent || isComplete ? 'text-[#16381e]' : 'text-muted-foreground')}>{item.label}</p>
-                  <p className="hidden truncate text-[10px] text-muted-foreground sm:block">{item.hint}</p>
+                  <p className="hidden truncate text-[11px] text-muted-foreground/60 sm:block pl-3.5 mt-0.5">
+                    {item.hint}
+                  </p>
                 </li>
               )
             })}
           </ol>
+
+          {/* Barre de progression continue sous les étapes */}
+          <div className="relative mt-3.5 h-1.5 w-full overflow-hidden rounded-full bg-[#eef2ec]">
+            <div
+              className="h-full rounded-full bg-[#16381e] transition-all duration-300 ease-in-out"
+              style={{
+                width: `${((currentStepIndex + 1) / bookingSteps.length) * 100}%`,
+              }}
+            />
+          </div>
         </div>
 
         {/* Body Content */}
