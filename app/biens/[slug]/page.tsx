@@ -240,14 +240,14 @@ export default async function ListingPage({ params }: { params: Promise<{ slug: 
           </div>
         </div>
 
-        {/* Galerie Photos */}
-        <section id="photos" className="mt-6 scroll-mt-24">
-          <ListingGallery images={listing.gallery} title={listing.title} />
-        </section>
+        {/* Layout Principal : Galerie & Contenu Détaillé (Gauche) + Sidebar Réservation Sticky (Droite) */}
+        <div className="mt-6 grid gap-8 lg:grid-cols-[1.5fr_1fr] items-start">
+          <div className="flex flex-col gap-10 min-w-0">
+            {/* Galerie Photos */}
+            <section id="photos" className="scroll-mt-24">
+              <ListingGallery images={listing.gallery} title={listing.title} />
+            </section>
 
-        {/* Layout Principal : Contenu Détaillé (Gauche) + Sidebar Contact Sticky (Droite) */}
-        <div className="mt-10 grid gap-12 lg:grid-cols-[1.6fr_1fr]">
-          <div className="flex flex-col gap-10">
             {/* Section Spécifications (Style Grille de cartes blanches avec icônes) */}
             <section id="specifications" className="scroll-mt-24">
               <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { BadgeCheck, Calculator, HelpCircle, Mail, MessageCircle, Phone, ShieldCheck, Sparkles, Star } from 'lucide-react'
+import { BadgeCheck, Bath, BedDouble, Calculator, Calendar, HelpCircle, Home, Mail, Maximize, MessageCircle, Phone, ShieldCheck, Sparkles, Star } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -31,7 +31,7 @@ export function PropertyReservationWidget({ listing }: { listing: Listing }) {
       {/* Top Box: Price & Main Action */}
       <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-card p-6 shadow-xl shadow-black/5">
         {/* Top Tag Badge */}
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary uppercase tracking-wider">
             <ShieldCheck className="size-3.5" />
             Titre vérifié MBIYO
@@ -47,6 +47,26 @@ export function PropertyReservationWidget({ listing }: { listing: Listing }) {
         <p className="text-xs font-medium text-muted-foreground">
           Réf : <span className="font-semibold text-foreground">MB-{listing.id?.slice(0, 6).toUpperCase() || '84920'}</span>
         </p>
+
+        {/* Grille Aperçu Caractéristiques (Style Kia / Auto Detail) */}
+        <div className="mt-3.5 grid grid-cols-2 gap-2 text-xs text-muted-foreground bg-secondary/30 p-3 rounded-2xl border border-border/40">
+          <div className="flex items-center gap-2">
+            <Calendar className="size-3.5 text-primary shrink-0" />
+            <span className="font-semibold text-foreground">{listing.year || listing.constructionYear || '2023'}</span>
+          </div>
+          <div className="flex items-center gap-2 truncate">
+            <Home className="size-3.5 text-primary shrink-0" />
+            <span className="font-semibold text-foreground truncate">{listing.type}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Maximize className="size-3.5 text-primary shrink-0" />
+            <span className="font-semibold text-foreground">{listing.surface} m²</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <BedDouble className="size-3.5 text-primary shrink-0" />
+            <span className="font-semibold text-foreground">{listing.beds > 0 ? `${listing.beds} ch.` : 'Standard'}</span>
+          </div>
+        </div>
 
         {/* Price Display Box */}
         <div className="mt-3 rounded-2xl bg-secondary/50 p-4 border border-border/60">
