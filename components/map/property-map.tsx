@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { Layers, Locate, Minus, Plus } from 'lucide-react'
 
 import { shortPrice, type Listing } from '@/lib/properties'
 
@@ -17,10 +18,23 @@ type Props = {
   className?: string
 }
 
-/**
- * Two listings in the same street would render one marker on top of the other.
- * Nudge duplicates by a few dozen metres so every price stays clickable.
- */
+type MapTileStyle = 'light' | 'satellite' | 'dark'
+
+const TILE_LAYERS: Record<MapTileStyle, { url: string; attribution: string }> = {
+  light: {
+    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+  },
+  satellite: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+  },
+  dark: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+  },
+}
+
 function spread(listings: Listing[]) {
   const seen = new Map<string, number>()
   return listings.map((listing) => {
@@ -43,18 +57,26 @@ function spread(listings: Listing[]) {
 }
 
 function markerIcon(listing: Listing, active: boolean) {
+  const bg = active ? '#16381e' : '#ffffff'
+  const color = active ? '#ffffff' : '#0f172a'
+  const border = active ? '#c5a059' : 'rgba(15, 23, 42, 0.15)'
+  const scale = active ? 'scale(1.15)' : 'scale(1)'
+  const zIndex = active ? 999 : 10
+
   return L.divIcon({
     className: 'price-marker',
     html: `<div style="
       display:inline-flex;align-items:center;white-space:nowrap;
-      padding:6px 12px;border-radius:9999px;
-      font-family:var(--font-sans);font-size:13px;font-weight:600;letter-spacing:-0.01em;
-      background:${active ? '#111827' : 'rgba(255,255,255,0.94)'};
-      color:${active ? '#ffffff' : '#111827'};
-      border:1px solid ${active ? '#111827' : 'rgba(17,24,39,0.1)'};
-      box-shadow:0 6px 20px rgba(0,0,0,0.14);
-      transform:translate(-50%,-50%);
-      transition:all 180ms ease;
+      padding:6px 14px;border-radius:9999px;
+      font-family:var(--font-sans), system-ui, sans-serif;font-size:13px;font-weight:700;letter-spacing:-0.01em;
+      background:${bg};
+      color:${color};
+      border:1.5px solid ${border};
+      box-shadow:${active ? '0 10px 25px -5px rgba(22, 56, 30, 0.45)' : '0 4px 14px rgba(0,0,0,0.14)'};
+      transform:translate(-50%,-50%) ${scale};
+      z-index:${zIndex};
+      cursor:pointer;
+      transition:all 200ms cubic-bezier(0.16, 1, 0.3, 1);
     ">${shortPrice(listing.price)}</div>`,
     iconSize: [0, 0],
     iconAnchor: [0, 0],
@@ -73,10 +95,13 @@ export default function PropertyMap({
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
+  const tileLayerRef = useRef<L.TileLayer | null>(null)
   const markersRef = useRef<Map<string, L.Marker>>(new Map())
   const positionsRef = useRef<Map<string, [number, number]>>(new Map())
   const onSelectRef = useRef(onSelect)
   onSelectRef.current = onSelect
+
+  const [tileStyle, setTileStyle] = useState<MapTileStyle>('light')
 
   // Create the map once.
   useEffect(() => {
@@ -87,29 +112,48 @@ export default function PropertyMap({
     const map = L.map(containerRef.current, {
       center: fallback,
       zoom,
-      zoomControl: interactive,
+      zoomControl: false,
       dragging: interactive,
-      scrollWheelZoom: false,
+      scrollWheelZoom: true,
       doubleClickZoom: interactive,
       touchZoom: interactive,
       keyboard: interactive,
       attributionControl: true,
     })
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap &copy; CARTO',
+    const initialLayer = TILE_LAYERS[tileStyle]
+    const tileLayer = L.tileLayer(initialLayer.url, {
+      attribution: initialLayer.attribution,
       maxZoom: 19,
     }).addTo(map)
 
+    tileLayerRef.current = tileLayer
     mapRef.current = map
 
     return () => {
       map.remove()
       mapRef.current = null
+      tileLayerRef.current = null
       markersRef.current.clear()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Switch tile layer
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    if (tileLayerRef.current) {
+      tileLayerRef.current.remove()
+    }
+
+    const currentLayer = TILE_LAYERS[tileStyle]
+    tileLayerRef.current = L.tileLayer(currentLayer.url, {
+      attribution: currentLayer.attribution,
+      maxZoom: 19,
+    }).addTo(map)
+  }, [tileStyle])
 
   // Sync markers with the listings.
   useEffect(() => {
@@ -137,10 +181,10 @@ export default function PropertyMap({
       markersRef.current.set(listing.slug, marker)
     })
 
-    if (fitOnChange && placed.length > 1) {
+    if (fitOnChange && placed.length > 0) {
       map.fitBounds(
         L.latLngBounds(placed.map(({ lat, lng }) => [lat, lng] as [number, number])),
-        { padding: [80, 80], maxZoom: 13 },
+        { padding: [60, 60], maxZoom: 14 },
       )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -161,5 +205,71 @@ export default function PropertyMap({
     }
   }, [activeSlug, listings])
 
-  return <div ref={containerRef} className={className} role="application" aria-label="Carte des biens" />
+  const handleZoomIn = () => mapRef.current?.zoomIn()
+  const handleZoomOut = () => mapRef.current?.zoomOut()
+  const handleRecenter = () => {
+    const map = mapRef.current
+    if (!map || listings.length === 0) return
+    const placed = spread(listings)
+    map.fitBounds(
+      L.latLngBounds(placed.map(({ lat, lng }) => [lat, lng] as [number, number])),
+      { padding: [60, 60], maxZoom: 14 },
+    )
+  }
+
+  return (
+    <div className="relative size-full overflow-hidden">
+      <div ref={containerRef} className={className} role="application" aria-label="Carte des biens" />
+
+      {/* Control Layer Switcher (Top Left) */}
+      <div className="absolute top-4 left-4 z-[400] flex items-center gap-1 rounded-full border border-border/80 bg-background/95 p-1 shadow-md backdrop-blur-md">
+        {(['light', 'satellite', 'dark'] as const).map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => setTileStyle(mode)}
+            className={`rounded-full px-3 py-1 text-xs font-semibold capitalize transition-all duration-200 ${
+              tileStyle === mode
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {mode === 'light' ? 'Plan' : mode === 'satellite' ? 'Satellite' : 'Sombre'}
+          </button>
+        ))}
+      </div>
+
+      {/* Floating Map Zoom & Recenter Controls (Bottom Right) */}
+      <div className="absolute bottom-6 right-4 z-[400] flex flex-col gap-1.5">
+        <button
+          type="button"
+          onClick={handleZoomIn}
+          title="Agrandir"
+          aria-label="Agrandir la carte"
+          className="flex size-9 items-center justify-center rounded-full border border-border/80 bg-background/95 text-foreground shadow-md backdrop-blur-md transition-all hover:bg-card hover:scale-105 active:scale-95"
+        >
+          <Plus className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={handleZoomOut}
+          title="Dézoomer"
+          aria-label="Dézoomer la carte"
+          className="flex size-9 items-center justify-center rounded-full border border-border/80 bg-background/95 text-foreground shadow-md backdrop-blur-md transition-all hover:bg-card hover:scale-105 active:scale-95"
+        >
+          <Minus className="size-4" />
+        </button>
+        <button
+          type="button"
+          onClick={handleRecenter}
+          title="Recentrer sur les biens"
+          aria-label="Recentrer la carte"
+          className="flex size-9 items-center justify-center rounded-full border border-border/80 bg-background/95 text-foreground shadow-md backdrop-blur-md transition-all hover:bg-card hover:scale-105 active:scale-95"
+        >
+          <Locate className="size-4" />
+        </button>
+      </div>
+    </div>
+  )
 }
+
