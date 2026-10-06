@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { compressImages } from '../lib/image-compressor'
 import { propertyService } from '../services/property.service'
 import { CreatePropertyPayload, Property } from '../types/property.types'
 
@@ -24,8 +25,10 @@ export function usePropertyMutations() {
   const uploadImages = async (propertyId: string, files: File[]): Promise<void> => {
     setLoading(true)
     try {
-      for (let i = 0; i < files.length; i++) {
-        await propertyService.uploadPropertyImage(propertyId, files[i], i === 0)
+      // Compression côté client (1920x1080, JPEG 80%) avant envoi multipart/form-data
+      const compressedFiles = await compressImages(files, { maxWidth: 1920, maxHeight: 1080, quality: 0.8 })
+      for (let i = 0; i < compressedFiles.length; i++) {
+        await propertyService.uploadPropertyImage(propertyId, compressedFiles[i], i === 0)
       }
       setLoading(false)
     } catch (err: any) {

@@ -454,7 +454,7 @@ export function PurchaseModal({ listing, variant = 'modal', isOpen = true, onClo
         </div>
       </div>
 
-      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </div>
   )
 }

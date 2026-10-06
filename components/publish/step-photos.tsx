@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react'
 
+import { compressImages } from '@/lib/image-compressor'
 import type { Draft, PhotoDraft } from '@/components/publish/draft'
 import { StepHeading } from '@/components/publish/fields'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -34,26 +35,34 @@ export function StepPhotos({
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<Record<string, 'loading' | 'done'>>({})
 
-  // Ajout de fichiers avec simulation d'upload élégante comme sur Airbnb
-  function handleFilesAdded(files: FileList | File[] | null) {
+  // Ajout de fichiers avec compression client (1920x1080, JPEG 80%) et simulation d'upload
+  async function handleFilesAdded(files: FileList | File[] | null) {
     if (!files || files.length === 0) return
     const fileArray = Array.from(files).filter((file) => file.type.startsWith('image/'))
     if (fileArray.length === 0) return
 
-    const newPhotos: PhotoDraft[] = fileArray
-      .slice(0, 12 - draft.photos.length)
-      .map((file) => ({
-        id: `${file.name}-${file.size}-${Math.random().toString(36).slice(2, 8)}`,
-        url: URL.createObjectURL(file),
-        name: file.name,
-        file,
-      }))
-
-    if (newPhotos.length === 0) return
-
-    // Ouvrir le modal d'upload
     setModalOpen(true)
     setUploading(true)
+
+    // Compression côté client avant création de l'objet PhotoDraft et envoi API
+    const rawSelected = fileArray.slice(0, 12 - draft.photos.length)
+    const compressedFiles = await compressImages(rawSelected, {
+      maxWidth: 1920,
+      maxHeight: 1080,
+      quality: 0.8,
+    })
+
+    const newPhotos: PhotoDraft[] = compressedFiles.map((file) => ({
+      id: `${file.name}-${file.size}-${Math.random().toString(36).slice(2, 8)}`,
+      url: URL.createObjectURL(file),
+      name: file.name,
+      file,
+    }))
+
+    if (newPhotos.length === 0) {
+      setUploading(false)
+      return
+    }
 
     // Initialiser les états de chargement pour les nouvelles photos
     const initialProgress: Record<string, 'loading' | 'done'> = {}
@@ -66,14 +75,13 @@ export function StepPhotos({
     const updatedPhotos = [...draft.photos, ...newPhotos]
     update({ photos: updatedPhotos })
 
-    // Simuler le processus d'upload fluide d'Airbnb avec spinner puis Check
     newPhotos.forEach((p, idx) => {
       setTimeout(() => {
         setUploadProgress((prev) => ({ ...prev, [p.id]: 'done' }))
         if (idx === newPhotos.length - 1) {
-          setTimeout(() => setUploading(false), 600)
+          setTimeout(() => setUploading(false), 300)
         }
-      }, (idx + 1) * 700)
+      }, (idx + 1) * 300)
     })
   }
 
