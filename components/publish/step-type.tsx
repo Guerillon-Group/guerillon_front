@@ -49,14 +49,19 @@ export function StepType({
 
         // Set default type ID if not already set
         if (loadedTypes.length > 0 && !draft.property_type_id) {
-          const match = loadedTypes.find((t) => t.name.toLowerCase() === draft.type.toLowerCase() || t.slug === draft.type.toLowerCase())
+          const match = loadedTypes.find(
+            (t) =>
+              t &&
+              ((t.name && String(t.name).toLowerCase() === String(draft.type).toLowerCase()) ||
+                (t.slug && String(t.slug).toLowerCase() === String(draft.type).toLowerCase())),
+          )
           if (match) {
             update({ property_type_id: match.id })
-          } else {
+          } else if (loadedTypes[0]) {
             update({ property_type_id: loadedTypes[0].id })
           }
         }
-        if (loadedCategories.length > 0 && !draft.property_category_id) {
+        if (loadedCategories.length > 0 && !draft.property_category_id && loadedCategories[0]) {
           update({ property_category_id: loadedCategories[0].id })
         }
       } catch (err) {
@@ -68,7 +73,10 @@ export function StepType({
 
   const handleSelectType = (selectedType: Listing['type']) => {
     const match = apiTypes.find(
-      (t) => t.name.toLowerCase() === selectedType.toLowerCase() || t.slug.toLowerCase() === selectedType.toLowerCase(),
+      (t) =>
+        t &&
+        ((t.name && String(t.name).toLowerCase() === String(selectedType).toLowerCase()) ||
+          (t.slug && String(t.slug).toLowerCase() === String(selectedType).toLowerCase())),
     )
     update({
       type: selectedType,

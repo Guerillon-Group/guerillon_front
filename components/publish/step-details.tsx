@@ -25,11 +25,15 @@ export function StepDetails({
       if (data && data.length > 0) {
         setCurrencies(data)
         if (!draft.currency_id) {
-          const match = data.find((c) => c.code.toUpperCase() === (draft.currency || 'USD').toUpperCase())
+          const targetCode = (draft.currency || 'USD').toUpperCase()
+          const match = data.find((c) => c && c.code && String(c.code).toUpperCase() === targetCode)
           if (match) {
-            update({ currency_id: match.id, currency: match.code })
+            update({ currency_id: match.id, currency: match.code || draft.currency || 'USD' })
           } else {
-            update({ currency_id: data[0].id, currency: data[0].code })
+            const first = data[0]
+            if (first) {
+              update({ currency_id: first.id, currency: first.code || draft.currency || 'USD' })
+            }
           }
         }
       }
@@ -84,9 +88,9 @@ export function StepDetails({
               value={draft.currency_id ? String(draft.currency_id) : draft.currency}
               onChange={(event) => {
                 const val = event.target.value
-                const foundCurr = currencies.find((c) => String(c.id) === val || c.code === val)
+                const foundCurr = currencies.find((c) => c && (String(c.id) === val || c.code === val))
                 if (foundCurr) {
-                  update({ currency_id: foundCurr.id, currency: foundCurr.code })
+                  update({ currency_id: foundCurr.id, currency: foundCurr.code || val })
                 } else {
                   update({ currency: val })
                 }
@@ -95,7 +99,7 @@ export function StepDetails({
               {currencies.length > 0 ? (
                 currencies.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.code} ({c.name})
+                    {c.code || c.name || 'USD'} {c.name && c.code ? `(${c.name})` : ''}
                   </option>
                 ))
               ) : (
