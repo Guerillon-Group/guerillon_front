@@ -25,7 +25,15 @@ export function HeroSearch() {
         const query = new URLSearchParams()
         if (where.trim()) query.set('q', where.trim())
         query.set('transaction', intent === 'Louer' ? 'À louer' : 'À vendre')
-        startTransition(() => router.push(query.size ? `/carte?${query}` : '/carte'))
+        if (budget && budget !== 'Indifférent') {
+          const match = budget.match(/(\d[\d\s]*)/)
+          if (match) {
+            const maxPrice = match[1].replace(/\s/g, '')
+            query.set('maxPrice', maxPrice)
+          }
+        }
+        const queryString = query.toString()
+        startTransition(() => router.push(queryString ? `/carte?${queryString}` : '/carte'))
       }}
       aria-label="Rechercher un bien"
       aria-busy={pending}

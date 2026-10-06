@@ -17,7 +17,7 @@ import { useAuthStore } from '@/stores/useAuthStore'
 const nav = [
   { href: '/', label: 'Acheter' },
   { href: '/carte', label: 'Explorer la carte' },
-  { href: '/messages', label: 'Messages', badge: '1', requiresAuth: true },
+  // { href: '/messages', label: 'Messages', badge: '1', requiresAuth: true },
   { href: '/tableau-de-bord', label: 'Tableau de bord', requiresAuth: true },
 ]
 
@@ -80,14 +80,14 @@ export function SiteHeader({ floating = false }: { floating?: boolean }) {
                   )}
                 >
                   <span>{item.label}</span>
-                  {item.badge && (
+                  {/* {item.badge && (
                     <span className="relative flex size-4 items-center justify-center">
                       <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/60 opacity-75" />
                       <span className="relative flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-extrabold text-primary-foreground shadow-xs">
                         {item.badge}
                       </span>
                     </span>
-                  )}
+                  )} */}
                 </Link>
               )
             })}

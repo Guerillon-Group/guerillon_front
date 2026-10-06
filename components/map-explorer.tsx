@@ -87,6 +87,25 @@ export function MapExplorer() {
     }
   }, [])
 
+  useEffect(() => {
+    const rawTransaction = searchParams.get('transaction')
+    const transactionParam: Transaction =
+      rawTransaction === 'À louer'
+        ? 'À louer'
+        : rawTransaction === 'À vendre'
+          ? 'À vendre'
+          : 'Tout'
+    const maxPriceParam = searchParams.get('maxPrice') || searchParams.get('priceMax')
+
+    setFilters((prev) => {
+      const updated = { ...prev, transaction: transactionParam }
+      if (maxPriceParam && !isNaN(Number(maxPriceParam))) {
+        updated.priceMax = Number(maxPriceParam)
+      }
+      return updated
+    })
+  }, [searchParams])
+
   const filtered = useMemo(() => {
     let result = applyFilters(properties, filters)
     if (searchQuery) {

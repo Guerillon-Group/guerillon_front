@@ -844,8 +844,21 @@ export function DashboardView() {
                         </div>
                       </div>
                       <div className="flex flex-col gap-2 p-5">
-                        <h3 className="truncate font-semibold text-[#16381e] text-base">{item.title}</h3>
-                        <p className="text-xs text-muted-foreground">{item.neighborhood || item.district || ''} {item.city || ''}</p>
+                        <h3 className="truncate font-semibold text-[#16381e] text-base">
+                          {typeof item.title === 'object' && item.title ? (item.title as any).name || 'Propriété' : item.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {[
+                            typeof item.neighborhood === 'object' && item.neighborhood
+                              ? (item.neighborhood as any).name
+                              : typeof item.district === 'object' && item.district
+                                ? (item.district as any).name
+                                : item.neighborhood || item.district,
+                            typeof item.city === 'object' && item.city ? (item.city as any).name : item.city,
+                          ]
+                            .filter(Boolean)
+                            .join(', ')}
+                        </p>
                         <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-3">
                           <span className="font-display text-lg font-bold text-[#16381e]">
                             ${item.price?.toLocaleString()} {item.transaction_type === 'rent' ? '/mois' : ''}

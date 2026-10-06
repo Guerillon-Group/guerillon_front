@@ -42,18 +42,18 @@ export function MobileBottomNav({ onOpenAuth }: MobileBottomNavProps) {
     },
     ...(isAuthenticated
       ? [
-          {
-            href: '/messages',
-            label: 'Messages',
-            icon: MessageSquare,
-            badge: '1',
-          },
-          {
-            href: '/tableau-de-bord',
-            label: 'Espace',
-            icon: User,
-          },
-        ]
+        // {
+        //   href: '/messages',
+        //   label: 'Messages',
+        //   icon: MessageSquare,
+        //   badge: '1',
+        // },
+        {
+          href: '/tableau-de-bord',
+          label: 'Espace',
+          icon: User,
+        },
+      ]
       : []),
   ]
 
@@ -116,7 +116,7 @@ export function MobileBottomNav({ onOpenAuth }: MobileBottomNavProps) {
               )}
             >
               <div className="relative">
-                <item.icon
+                {/* <item.icon
                   className={cn(
                     'size-5 transition-transform duration-200',
                     isActive && 'scale-110 text-[#16381e] stroke-[2.5]',
@@ -126,7 +126,7 @@ export function MobileBottomNav({ onOpenAuth }: MobileBottomNavProps) {
                   <span className="absolute -top-1 -right-1.5 flex size-3.5 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
                     {item.badge}
                   </span>
-                )}
+                )} */}
               </div>
               <span
                 className={cn(

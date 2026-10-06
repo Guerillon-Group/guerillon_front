@@ -37,13 +37,14 @@ export function EditPropertyModal({
 
   useEffect(() => {
     if (property) {
+      const getStr = (val: any) => (typeof val === 'object' && val ? val.name || val.title || '' : String(val || ''))
       setFormData({
-        title: property.title || '',
+        title: getStr(property.title),
         price: property.price || 0,
         transaction_type: property.transaction_type === 'rent' || property.transaction_type === 'Louer' ? 'rent' : 'sale',
         status: property.status || 'published',
-        city: property.city || '',
-        neighborhood: property.neighborhood || property.district || '',
+        city: getStr(property.city),
+        neighborhood: getStr(property.neighborhood || property.district),
         bedrooms: property.bedrooms || 0,
         bathrooms: property.bathrooms || 0,
         surface_area: property.surface_area || 0,
