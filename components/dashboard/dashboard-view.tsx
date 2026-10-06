@@ -82,34 +82,10 @@ const roleData: Record<UserRole, RoleConfig> = {
     avatar: '/images/placeholder-user.jpg',
     name: 'Agent MBIYO',
     metrics: [
-      {
-        title: 'Vues Totales',
-        value: '0',
-        change: '0% ce mois',
-        trend: 'neutral',
-        icon: Eye,
-      },
-      {
-        title: 'Biens en Mandat',
-        value: '0 Bien',
-        change: '0 Exclusivité',
-        trend: 'neutral',
-        icon: Building2,
-      },
-      {
-        title: 'Demandes & Prospect',
-        value: '0 Contact',
-        change: '0 cette semaine',
-        trend: 'neutral',
-        icon: MessageSquare,
-      },
-      {
-        title: 'Commissions Est.',
-        value: '$0',
-        change: '0% vs Q1',
-        trend: 'neutral',
-        icon: Wallet,
-      },
+      { title: 'Vues Totales', value: '0', change: '0% ce mois', trend: 'neutral', icon: Eye },
+      { title: 'Biens en Mandat', value: '0 Bien', change: '0 Exclusivité', trend: 'neutral', icon: Building2 },
+      { title: 'Demandes & Prospect', value: '0 Contact', change: '0 cette semaine', trend: 'neutral', icon: MessageSquare },
+      { title: 'Commissions Est.', value: '$0', change: '0% vs Q1', trend: 'neutral', icon: Wallet },
     ],
     chartData: [
       { label: 'Lun', value: 0, secondary: 0 },
@@ -130,34 +106,10 @@ const roleData: Record<UserRole, RoleConfig> = {
     avatar: '/images/placeholder-user.jpg',
     name: 'Propriétaire',
     metrics: [
-      {
-        title: 'Biens en Ligne',
-        value: '0 Propriété',
-        change: '0% Titrés',
-        trend: 'neutral',
-        icon: Home,
-      },
-      {
-        title: 'Consultations',
-        value: '0 Vue',
-        change: '0% ce mois',
-        trend: 'neutral',
-        icon: Eye,
-      },
-      {
-        title: 'Demandes de Visite',
-        value: '0 Visite',
-        change: '0 en attente',
-        trend: 'neutral',
-        icon: Calendar,
-      },
-      {
-        title: 'Valeur Estimée',
-        value: '$0',
-        change: 'Patrimoine MBIYO',
-        trend: 'neutral',
-        icon: ShieldCheck,
-      },
+      { title: 'Biens en Ligne', value: '0 Propriété', change: '0% Titrés', trend: 'neutral', icon: Home },
+      { title: 'Consultations', value: '0 Vue', change: '0% ce mois', trend: 'neutral', icon: Eye },
+      { title: 'Demandes de Visite', value: '0 Visite', change: '0 en attente', trend: 'neutral', icon: Calendar },
+      { title: 'Valeur Estimée', value: '$0', change: 'Patrimoine MBIYO', trend: 'neutral', icon: ShieldCheck },
     ],
     chartData: [
       { label: 'Lun', value: 0, secondary: 0 },
@@ -178,34 +130,10 @@ const roleData: Record<UserRole, RoleConfig> = {
     avatar: '/images/placeholder-user.jpg',
     name: 'Acheteur',
     metrics: [
-      {
-        title: 'Biens Sauvegardés',
-        value: '0 Favori',
-        change: '0 Baisse de prix',
-        trend: 'neutral',
-        icon: Heart,
-      },
-      {
-        title: 'Offres Soumises',
-        value: '0 Offre',
-        change: 'Aucune offre',
-        trend: 'neutral',
-        icon: FileText,
-      },
-      {
-        title: 'Alertes Recherche',
-        value: '0 Critère',
-        change: '—',
-        trend: 'neutral',
-        icon: Filter,
-      },
-      {
-        title: 'Budget Envisagé',
-        value: '$0',
-        change: 'Non défini',
-        trend: 'neutral',
-        icon: Wallet,
-      },
+      { title: 'Biens Sauvegardés', value: '0 Favori', change: '0 Baisse de prix', trend: 'neutral', icon: Heart },
+      { title: 'Offres Soumises', value: '0 Offre', change: 'Aucune offre', trend: 'neutral', icon: FileText },
+      { title: 'Alertes Recherche', value: '0 Critère', change: '—', trend: 'neutral', icon: Filter },
+      { title: 'Budget Envisagé', value: '$0', change: 'Non défini', trend: 'neutral', icon: Wallet },
     ],
     chartData: [
       { label: 'Jan', value: 0, secondary: 0 },
@@ -217,6 +145,16 @@ const roleData: Record<UserRole, RoleConfig> = {
     ],
     activities: [],
   },
+}
+
+function safeString(val: any, fallback = ''): string {
+  if (!val) return fallback
+  if (typeof val === 'string') return val
+  if (typeof val === 'number') return String(val)
+  if (typeof val === 'object') {
+    return val.name || val.title || val.label || val.city || fallback
+  }
+  return fallback
 }
 
 export function DashboardView() {
@@ -281,7 +219,7 @@ export function DashboardView() {
     : current.subtitle
   const userBadge = user
     ? user.role === 'owner' || user.role === 'proprietaire'
-      ? 'Propriétaire Vérifié'
+      ? 'Propriétaire'
       : user.role === 'agency' || user.role === 'agent'
         ? 'Agent Certifié'
         : 'Membre MBIYO'
@@ -317,14 +255,14 @@ export function DashboardView() {
   const activitiesList = apiSummary?.recentActivities || current.activities
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[#f8faf7]">
+    <div className="flex min-h-dvh flex-col bg-[#f9faf8]">
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-[1280px] flex-1 px-4 py-8 md:px-6 md:py-10">
-        {/* Top Minimalist Header & Role Selector */}
+        {/* En-tête sobre avec profil & sélecteur de mode */}
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
-            <div className="relative size-14 overflow-hidden rounded-2xl border-2 border-[#16381e]/20 bg-white p-0.5 shadow-sm">
+            <div className="relative size-14 overflow-hidden rounded-2xl border border-[#16381e]/15 bg-white p-0.5 shadow-xs">
               <Image
                 src={userAvatar}
                 alt={userName}
@@ -335,30 +273,26 @@ export function DashboardView() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-display text-2xl font-extrabold tracking-tight text-[#16381e]">
+                <h1 className="font-display text-2xl font-bold tracking-tight text-[#16381e]">
                   {userName}
                 </h1>
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#16381e]/10 px-2.5 py-0.5 text-xs font-bold text-[#16381e] border border-[#16381e]/20">
-                  <BadgeCheck className="size-3.5 fill-[#c5a059] text-white" />
+                <span className="inline-flex items-center gap-1 rounded-full border border-[#16381e]/15 bg-[#16381e]/5 px-2.5 py-0.5 text-xs font-semibold text-[#16381e]">
+                  <BadgeCheck className="size-3.5 text-[#16381e]" />
                   {userBadge}
                 </span>
                 {summaryLoading ? (
-                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground ml-2">
-                    <RefreshCw className="size-3 animate-spin text-[#c5a059]" /> Chargement API...
-                  </span>
-                ) : apiSummary ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 border border-emerald-500/20 ml-2">
-                    <span className="size-1.5 rounded-full bg-emerald-600 animate-pulse" /> Live API
+                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground ml-1">
+                    <RefreshCw className="size-3 animate-spin text-[#16381e]" /> Synchronisation...
                   </span>
                 ) : null}
               </div>
-              <p className="text-xs font-medium text-muted-foreground mt-0.5">{userSubtitle}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{userSubtitle}</p>
             </div>
           </div>
 
-          {/* Mutable User Role Switcher */}
+          {/* Sélecteur de rôle harmonisé */}
           <div className="flex items-center gap-1 rounded-2xl border border-border bg-white p-1.5 shadow-xs">
-            <span className="px-3 text-xs font-bold uppercase tracking-wider text-muted-foreground hidden sm:inline">
+            <span className="px-3 text-xs font-semibold text-muted-foreground hidden sm:inline">
               Mode :
             </span>
             {(['agent', 'proprietaire', 'acheteur'] as UserRole[]).map((r) => {
@@ -378,7 +312,7 @@ export function DashboardView() {
                   className={cn(
                     'rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-200 capitalize',
                     active
-                      ? 'bg-[#16381e] text-white shadow-md shadow-[#16381e]/20'
+                      ? 'bg-[#16381e] text-white shadow-xs'
                       : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
                   )}
                 >
@@ -389,8 +323,8 @@ export function DashboardView() {
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="mt-8 flex border-b border-border/80">
+        {/* Onglets de navigation */}
+        <div className="mt-8 flex border-b border-border/70">
           <div className="flex gap-2">
             {tabs.map((tab) => {
               const active = selectedTab === tab.id
@@ -426,14 +360,14 @@ export function DashboardView() {
           </div>
         </div>
 
-        {/* TAB 1: APERÇU (SUMMARY + QUICK ACTIONS + FINANCIAL OVERVIEW + URGENT TASKS + GRAPH + RECENT ACTIVITIES) */}
+        {/* TAB 1: APERÇU (VUE D'ENSEMBLE UNIFIÉE SOUMISE À UNE PALETTE MONOCHROME) */}
         {selectedTab === 'apercu' && (
           <div className="mt-8 flex flex-col gap-8">
-            {/* Quick Actions Ribbon Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#16381e]/15 bg-white p-4 shadow-xs">
+            {/* Barre d'actions rapides */}
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/80 bg-white p-4 shadow-xs">
               <div className="flex items-center gap-2 text-xs font-bold text-[#16381e]">
-                <Sparkles className="size-4 text-[#c5a059]" />
-                <span>Actions Rapides Dashboard :</span>
+                <Sparkles className="size-4 text-[#16381e]" />
+                <span>Actions Rapides Dashboard</span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button
@@ -453,9 +387,9 @@ export function DashboardView() {
                       onClick={() => setSelectedTab('kyc')}
                       size="sm"
                       variant="outline"
-                      className="gap-1.5 rounded-xl border-[#16381e]/30 text-[#16381e] hover:bg-[#16381e]/5 text-xs font-bold"
+                      className="gap-1.5 rounded-xl border-[#16381e]/20 text-[#16381e] hover:bg-[#16381e]/5 text-xs font-bold"
                     >
-                      <ShieldCheck className="size-3.5 text-[#c5a059]" />
+                      <ShieldCheck className="size-3.5 text-[#16381e]" />
                       Espace KYC & RIB
                     </Button>
                     <Button
@@ -463,7 +397,7 @@ export function DashboardView() {
                       onClick={() => setSelectedTab('kyc')}
                       size="sm"
                       variant="outline"
-                      className="gap-1.5 rounded-xl border-[#16381e]/30 text-[#16381e] hover:bg-[#16381e]/5 text-xs font-bold"
+                      className="gap-1.5 rounded-xl border-[#16381e]/20 text-[#16381e] hover:bg-[#16381e]/5 text-xs font-bold"
                     >
                       <FileText className="size-3.5" />
                       Demander un Mandat
@@ -484,29 +418,29 @@ export function DashboardView() {
               </div>
             </div>
 
-            {/* Key Metrics Grid */}
+            {/* Grille des 4 indicateurs clés */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {displayMetrics.map((m) => {
                 const Icon = m.icon
                 return (
                   <div
                     key={m.title}
-                    className="group relative flex flex-col gap-3 rounded-2xl border border-border/70 bg-white p-5 shadow-xs transition-all duration-200 hover:border-[#16381e]/30 hover:shadow-sm"
+                    className="flex flex-col justify-between rounded-2xl border border-border/80 bg-white p-5 shadow-xs transition-all duration-200 hover:border-[#16381e]/30"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                         {m.title}
                       </span>
-                      <span className="flex size-9 items-center justify-center rounded-xl bg-[#16381e]/5 text-[#16381e] transition-colors group-hover:bg-[#16381e] group-hover:text-white">
+                      <span className="flex size-9 items-center justify-center rounded-xl bg-[#16381e]/5 text-[#16381e]">
                         <Icon className="size-4" />
                       </span>
                     </div>
-                    <div>
-                      <span className="font-display text-2xl font-extrabold tracking-tight text-[#16381e]">
+                    <div className="mt-3">
+                      <span className="font-display text-2xl font-bold tracking-tight text-[#16381e]">
                         {m.value}
                       </span>
-                      <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-[#c5a059]">
-                        <TrendingUp className="size-3" />
+                      <p className="mt-1 flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                        <TrendingUp className="size-3 text-[#16381e]" />
                         {m.change}
                       </p>
                     </div>
@@ -515,52 +449,52 @@ export function DashboardView() {
               })}
             </div>
 
-            {/* Financial Overview & Urgent Tasks Grid */}
+            {/* Section Financière & Tâches Prioritaires (Palette monochrome épurée) */}
             <div className="grid gap-6 lg:grid-cols-3">
-              {/* Card 1: Financial & Payout Summary */}
-              <div className="flex flex-col justify-between rounded-3xl border border-[#16381e]/15 bg-gradient-to-br from-white via-[#16381e]/5 to-white p-6 shadow-xs lg:col-span-2">
+              {/* Carte Synthèse Financière */}
+              <div className="flex flex-col justify-between rounded-3xl border border-border/80 bg-white p-6 shadow-xs lg:col-span-2">
                 <div>
                   <div className="flex items-center justify-between border-b border-border/60 pb-4">
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-3">
                       <span className="flex size-10 items-center justify-center rounded-2xl bg-[#16381e] text-white">
                         <Wallet className="size-5" />
                       </span>
                       <div>
                         <h3 className="font-display text-base font-bold text-[#16381e]">Synthèse Financière & Versements</h3>
-                        <p className="text-xs text-muted-foreground">Suivi des loyers, commissions et avoirs vérifiés MBIYO</p>
+                        <p className="text-xs text-muted-foreground">Suivi des loyers, commissions et avoirs MBIYO</p>
                       </div>
                     </div>
-                    <span className="rounded-full bg-[#16381e]/10 px-3 py-1 text-xs font-bold text-[#16381e]">
+                    <span className="rounded-full border border-[#16381e]/15 bg-[#16381e]/5 px-3 py-1 text-xs font-semibold text-[#16381e]">
                       {activeRole === 'proprietaire' ? 'Compte Bailleur' : activeRole === 'agent' ? 'Compte Agent' : 'Compte Acheteur'}
                     </span>
                   </div>
 
                   <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                    <div className="rounded-2xl border border-border/60 bg-white p-4">
+                    <div className="rounded-2xl border border-border/60 bg-[#f9faf8] p-4">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                         {activeRole === 'acheteur' ? 'Budget Pré-approuvé' : 'Solde Disponible'}
                       </span>
-                      <p className="mt-1 font-display text-xl font-extrabold text-[#16381e]">
+                      <p className="mt-1.5 font-display text-xl font-bold text-[#16381e]">
                         {apiSummary?.financialOverview?.available_balance || apiSummary?.financialOverview?.preapproved_budget || '$12,450.00'}
                       </p>
-                      <span className="mt-1 block text-[10px] text-emerald-700 font-semibold">Prêt pour retrait instantané</span>
+                      <span className="mt-1 block text-[10px] font-medium text-muted-foreground">Prêt pour transfert</span>
                     </div>
 
-                    <div className="rounded-2xl border border-border/60 bg-white p-4">
+                    <div className="rounded-2xl border border-border/60 bg-[#f9faf8] p-4">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                        {activeRole === 'acheteur' ? 'Acomptes Engagés' : 'Versements en Attente'}
+                        {activeRole === 'acheteur' ? 'Acomptes Engagés' : 'En Attente de Validation'}
                       </span>
-                      <p className="mt-1 font-display text-xl font-extrabold text-[#c5a059]">
+                      <p className="mt-1.5 font-display text-xl font-bold text-[#16381e]">
                         {apiSummary?.financialOverview?.pending_payouts || apiSummary?.financialOverview?.committed_deposits || '$3,200.00'}
                       </p>
                       <span className="mt-1 block text-[10px] text-muted-foreground">Validation sous 48h</span>
                     </div>
 
-                    <div className="rounded-2xl border border-border/60 bg-white p-4">
+                    <div className="rounded-2xl border border-border/60 bg-[#f9faf8] p-4">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                         Prochain Virement
                       </span>
-                      <p className="mt-1 text-sm font-bold text-[#16381e]">
+                      <p className="mt-1.5 text-sm font-bold text-[#16381e]">
                         {apiSummary?.financialOverview?.next_payout_date || '25 Septembre 2026'}
                       </p>
                       <span className="mt-1 block text-[10px] text-muted-foreground">RIB Certifié MBIYO</span>
@@ -570,7 +504,7 @@ export function DashboardView() {
 
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
                   <span className="text-xs text-muted-foreground">
-                    Garantie bancaire & séquestre notarié intégrés
+                    Séquestre notarié & garanties de paiement intégrés
                   </span>
                   <Button
                     type="button"
@@ -581,18 +515,18 @@ export function DashboardView() {
                     disabled={payoutRequested}
                     className="gap-2 rounded-xl bg-[#16381e] text-white hover:bg-[#16381e]/90 text-xs font-bold"
                   >
-                    <CreditCard className="size-4 text-[#c5a059]" />
-                    {payoutRequested ? 'Demande envoyée !' : 'Demander un Virement Instantané'}
+                    <CreditCard className="size-4" />
+                    {payoutRequested ? 'Demande envoyée !' : 'Demander un Virement'}
                   </Button>
                 </div>
               </div>
 
-              {/* Card 2: Pending Urgent Tasks */}
+              {/* Carte Actions et Démarches Requises */}
               <div className="flex flex-col justify-between rounded-3xl border border-border/80 bg-white p-6 shadow-xs">
                 <div>
                   <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                    <h3 className="font-display text-base font-bold text-[#16381e]">Actions Urgent</h3>
-                    <span className="flex size-6 items-center justify-center rounded-full bg-[#c5a059]/20 text-xs font-bold text-[#16381e]">
+                    <h3 className="font-display text-base font-bold text-[#16381e]">Démarches à Traiter</h3>
+                    <span className="flex size-6 items-center justify-center rounded-full bg-[#16381e]/10 text-xs font-bold text-[#16381e]">
                       {apiSummary?.pendingTasks?.length || 2}
                     </span>
                   </div>
@@ -602,19 +536,19 @@ export function DashboardView() {
                       { id: 't1', title: 'Vérification Titre Foncier N° 4092', type: 'kyc', priority: 'high', dueDate: '18 Sept 2026' },
                       { id: 't2', title: 'Confirmation RIB pour virement', type: 'bank', priority: 'medium', dueDate: '20 Sept 2026' },
                     ]).map((task) => (
-                      <div key={task.id} className="flex flex-col gap-2 rounded-2xl border border-border/60 bg-[#f8faf7] p-3.5">
+                      <div key={task.id} className="flex flex-col gap-2 rounded-2xl border border-border/60 bg-[#f9faf8] p-3.5">
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-xs font-semibold text-[#16381e]">{task.title}</span>
                           <span className={cn(
                             'rounded-full px-2 py-0.5 text-[10px] font-bold',
-                            task.priority === 'high' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
+                            task.priority === 'high' ? 'bg-[#16381e] text-white' : 'bg-[#16381e]/10 text-[#16381e]'
                           )}>
-                            {task.priority === 'high' ? 'Priorité Haute' : 'Moyenne'}
+                            {task.priority === 'high' ? 'Urgent' : 'Normal'}
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-1">
                           <span className="flex items-center gap-1">
-                            <Clock className="size-3 text-[#c5a059]" /> Échéance : {task.dueDate}
+                            <Clock className="size-3 text-[#16381e]" /> Échéance : {task.dueDate}
                           </span>
                           <button
                             type="button"
@@ -635,13 +569,13 @@ export function DashboardView() {
                     onClick={() => setSelectedTab('kyc')}
                     className="w-full text-center text-xs font-bold text-[#16381e] hover:underline"
                   >
-                    Voir toutes les démarches KYC & Mandats →
+                    Voir l'espace KYC & Mandats →
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Minimalist Interactive Area Chart */}
+            {/* Graphique d'Activité minimaliste (Vert & Champagne Gold très subtil) */}
             <div className="rounded-3xl border border-border/80 bg-white p-6 shadow-xs md:p-8">
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -649,37 +583,41 @@ export function DashboardView() {
                     {activeRole === 'agent'
                       ? 'Performance des Consultations & Demandes'
                       : activeRole === 'proprietaire'
-                        ? 'Fréquentation des Annonces & Engagement'
-                        : 'Évolution du Marché Immobiler'}
+                        ? 'Fréquentation des Annonces'
+                        : 'Activité du Marché Immobilier'}
                   </h2>
                   <p className="text-xs text-muted-foreground">
-                    Activité mesurée en temps réel sur la plateforme MBIYO.
+                    Activités mesurées sur la plateforme MBIYO.
                   </p>
                 </div>
-                <div className="flex items-center gap-2 text-xs font-semibold text-[#16381e]">
-                  <span className="size-2.5 rounded-full bg-[#16381e]" />
-                  <span>Vues / Intérêt</span>
-                  <span className="ml-3 size-2.5 rounded-full bg-[#c5a059]" />
-                  <span>Leads & Contacts</span>
+                <div className="flex items-center gap-4 text-xs font-semibold text-[#16381e]">
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-2.5 rounded-full bg-[#16381e]" />
+                    <span>Vues / Intérêt</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-2.5 rounded-full bg-[#c5a059]" />
+                    <span>Demandes / Contacts</span>
+                  </span>
                 </div>
               </div>
 
-              {/* Vector SVG Sparkline / Area Chart */}
+              {/* Graphique SVG vectoriel épuré */}
               <div className="relative mt-8 h-48 w-full">
                 <svg className="size-full overflow-visible" viewBox="0 0 700 180" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="mbiyo-area-grad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#16381e" stopOpacity="0.25" />
+                      <stop offset="0%" stopColor="#16381e" stopOpacity="0.15" />
                       <stop offset="100%" stopColor="#16381e" stopOpacity="0.0" />
                     </linearGradient>
                   </defs>
 
-                  {/* Horizontal Grid lines */}
+                  {/* Lignes de grille horizontales discrètes */}
                   {[0, 45, 90, 135, 180].map((y) => (
-                    <line key={y} x1="0" y1={y} x2="700" y2={y} stroke="#e5e7eb" strokeDasharray="4 4" strokeWidth="1" />
+                    <line key={y} x1="0" y1={y} x2="700" y2={y} stroke="#f0f2ee" strokeDasharray="3 3" strokeWidth="1" />
                   ))}
 
-                  {/* Area Fill */}
+                  {/* Zone de remplissage */}
                   <path
                     d={`M 0 180 ${chartPoints
                       .map((d, i) => {
@@ -691,7 +629,7 @@ export function DashboardView() {
                     fill="url(#mbiyo-area-grad)"
                   />
 
-                  {/* Primary Line */}
+                  {/* Ligne principale Vert Sombre */}
                   <path
                     d={`M ${chartPoints
                       .map((d, i) => {
@@ -702,12 +640,12 @@ export function DashboardView() {
                       .join(' L ')}`}
                     fill="none"
                     stroke="#16381e"
-                    strokeWidth="3"
+                    strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
 
-                  {/* Secondary Line (Gold) */}
+                  {/* Ligne secondaire Or Mât */}
                   <path
                     d={`M ${chartPoints
                       .map((d, i) => {
@@ -718,12 +656,12 @@ export function DashboardView() {
                       .join(' L ')}`}
                     fill="none"
                     stroke="#c5a059"
-                    strokeWidth="2.5"
-                    strokeDasharray="5 5"
+                    strokeWidth="2"
+                    strokeDasharray="4 4"
                     strokeLinecap="round"
                   />
 
-                  {/* Interactive Points */}
+                  {/* Points interactifs */}
                   {chartPoints.map((d, i) => {
                     const x = (i / (chartPoints.length - 1)) * 700
                     const y = 160 - (d.value / chartMaxValue) * 130
@@ -733,10 +671,10 @@ export function DashboardView() {
                         <circle
                           cx={x}
                           cy={y}
-                          r={hovered ? '6' : '4'}
+                          r={hovered ? '5' : '3.5'}
                           fill="#16381e"
                           stroke="#ffffff"
-                          strokeWidth="2.5"
+                          strokeWidth="2"
                           className="cursor-pointer transition-all duration-200"
                         />
                       </g>
@@ -744,8 +682,8 @@ export function DashboardView() {
                   })}
                 </svg>
 
-                {/* X Axis Labels */}
-                <div className="mt-3 flex justify-between text-xs font-semibold text-muted-foreground">
+                {/* Axes X */}
+                <div className="mt-3 flex justify-between text-xs font-medium text-muted-foreground">
                   {chartPoints.map((d) => (
                     <span key={d.label}>{d.label}</span>
                   ))}
@@ -753,22 +691,22 @@ export function DashboardView() {
               </div>
             </div>
 
-            {/* Recent Activity List */}
+            {/* Liste de l'activité récente */}
             <div className="rounded-3xl border border-border/80 bg-white p-6 shadow-xs">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-base font-bold text-[#16381e]">Activité Récente en Temps Réel</h3>
-                <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                  <span className="size-2 rounded-full bg-emerald-500 animate-pulse" /> Direct MBIYO
+                <h3 className="font-display text-base font-bold text-[#16381e]">Activité Récente</h3>
+                <span className="text-xs font-semibold text-muted-foreground">
+                  Dernières mises à jour MBIYO
                 </span>
               </div>
 
-              <div className="mt-4 flex flex-col divide-y divide-border/60">
+              <div className="mt-4 flex flex-col divide-y divide-border/50">
                 {activitiesList.map((act) => (
                   <div key={act.id} className="flex items-start justify-between gap-4 py-4 first:pt-2 last:pb-2">
                     <div className="flex items-start gap-3.5">
-                      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#16381e]/10 text-[#16381e]">
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#16381e]/5 text-[#16381e]">
                         {act.type === 'offer' ? (
-                          <Wallet className="size-4 text-[#c5a059]" />
+                          <Wallet className="size-4 text-[#16381e]" />
                         ) : act.type === 'verification' ? (
                           <ShieldCheck className="size-4 text-[#16381e]" />
                         ) : (
@@ -801,7 +739,7 @@ export function DashboardView() {
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between border-b border-border/80 pb-4">
               <div>
                 <h3 className="font-display text-lg font-bold text-[#16381e]">
-                  {activeRole === 'agent' ? 'Biens gérés par mon agence / compte' : activeRole === 'proprietaire' ? 'Mes Biens Immobiliers' : 'Biens Enregistrés'}
+                  {activeRole === 'agent' ? 'Biens gérés par mon compte' : activeRole === 'proprietaire' ? 'Mes Biens Immobiliers' : 'Biens Enregistrés'}
                 </h3>
                 <p className="text-xs text-muted-foreground">
                   {user ? `Biens rattachés à ${user.name}` : 'Vos propriétés publiées et vérifiées MBIYO'}
@@ -820,13 +758,18 @@ export function DashboardView() {
 
             {loadingProperties ? (
               <div className="flex items-center justify-center py-12 text-xs text-muted-foreground gap-2">
-                <RefreshCw className="size-4 animate-spin text-[#c5a059]" /> Chargement des biens du compte...
+                <RefreshCw className="size-4 animate-spin text-[#16381e]" /> Chargement des biens...
               </div>
             ) : userProperties.length > 0 ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {userProperties.map((item) => {
                   const rawImage = item.images?.find((img) => img.is_cover)?.url || item.images?.[0]?.url
                   const coverImage = resolveImageUrl(rawImage)
+                  const itemTitle = safeString(item.title, 'Propriété')
+                  const itemCity = safeString(item.city)
+                  const itemDistrict = safeString(item.neighborhood || item.district)
+                  const locationString = [itemDistrict, itemCity].filter(Boolean).join(', ')
+
                   return (
                     <div
                       key={item.id}
@@ -835,30 +778,19 @@ export function DashboardView() {
                       <div className="relative aspect-[16/10] overflow-hidden">
                         <Image
                           src={coverImage}
-                          alt={item.title}
+                          alt={itemTitle}
                           fill
                           className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
-                        <div className="absolute top-3 right-3 rounded-full bg-[#16381e] px-2.5 py-1 text-[11px] font-bold text-white shadow-md">
+                        <div className="absolute top-3 right-3 rounded-full bg-[#16381e] px-2.5 py-1 text-[11px] font-bold text-white shadow-xs">
                           {item.is_verified ? 'Certifié MBIYO' : item.status === 'published' ? 'En ligne' : 'En révision'}
                         </div>
                       </div>
                       <div className="flex flex-col gap-2 p-5">
                         <h3 className="truncate font-semibold text-[#16381e] text-base">
-                          {typeof item.title === 'object' && item.title ? (item.title as any).name || 'Propriété' : item.title}
+                          {itemTitle}
                         </h3>
-                        <p className="text-xs text-muted-foreground">
-                          {[
-                            typeof item.neighborhood === 'object' && item.neighborhood
-                              ? (item.neighborhood as any).name
-                              : typeof item.district === 'object' && item.district
-                                ? (item.district as any).name
-                                : item.neighborhood || item.district,
-                            typeof item.city === 'object' && item.city ? (item.city as any).name : item.city,
-                          ]
-                            .filter(Boolean)
-                            .join(', ')}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{locationString}</p>
                         <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-3">
                           <span className="font-display text-lg font-bold text-[#16381e]">
                             ${item.price?.toLocaleString()} {item.transaction_type === 'rent' ? '/mois' : ''}
@@ -918,17 +850,17 @@ export function DashboardView() {
 
         {/* TAB 4: JOURNAL D'ACTIVITÉ */}
         {selectedTab === 'activites' && (
-          <div className="mt-8 rounded-3xl border border-border/80 bg-white p-6">
-            <h3 className="font-display text-lg font-bold text-[#16381e]">Historique Complet des Actions</h3>
-            <p className="text-xs text-muted-foreground mt-1">Tracé sécurisé des visites, offres et vérifications de titres.</p>
+          <div className="mt-8 rounded-3xl border border-border/80 bg-white p-6 shadow-xs">
+            <h3 className="font-display text-lg font-bold text-[#16381e]">Historique des Actions</h3>
+            <p className="text-xs text-muted-foreground mt-1">Tracé des visites, offres et vérifications de titres.</p>
             <div className="mt-6 flex flex-col gap-3">
               {[
                 { time: 'Aujourd\'hui 14:20', text: 'Mise à jour des coordonnées cadastrales pour la Villa Katindo.' },
                 { time: 'Hier 11:05', text: 'Validation du titre foncier N° 8902-SK par l\'équipe juridique MBIYO.' },
                 { time: '08 Août 09:30', text: 'Visite guidée virtuelle enregistrée par 3 acheteurs internationaux.' },
               ].map((log, i) => (
-                <div key={i} className="flex items-center gap-4 rounded-xl border border-border/60 p-4 bg-[#f8faf7]">
-                  <CheckCircle2 className="size-5 shrink-0 text-[#c5a059]" />
+                <div key={i} className="flex items-center gap-4 rounded-xl border border-border/60 p-4 bg-[#f9faf8]">
+                  <CheckCircle2 className="size-5 shrink-0 text-[#16381e]" />
                   <div className="flex-1 text-xs">
                     <span className="font-bold text-[#16381e]">{log.time}</span> — {log.text}
                   </div>
