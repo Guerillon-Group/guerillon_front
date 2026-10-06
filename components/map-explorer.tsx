@@ -467,6 +467,15 @@ export function MapExplorer() {
   )
 }
 
+function safeText(val: any, fallback: string = ''): string {
+  if (typeof val === 'string') return val
+  if (val && typeof val === 'object') {
+    if (typeof val.name === 'string') return val.name
+    if (typeof val.title === 'string') return val.title
+  }
+  return fallback
+}
+
 /**
  * Horizontal Property Card styled exactly like modern Airbnb/Booking listings (Reference design)
  */
@@ -537,7 +546,7 @@ function HorizontalPropertyCard({
           {/* Top Row: Subtitle & Rating */}
           <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
             <span className="truncate font-medium">
-              {listing.type} à {listing.district}, {listing.city}
+              {safeText(listing.type, 'Appartement')} à {safeText(listing.district, 'Centre-Ville')}, {safeText(listing.city, 'Goma')}
             </span>
             <div className="flex items-center gap-1 shrink-0 font-semibold text-foreground">
               <Star className="size-3.5 fill-amber-400 text-amber-400" />
@@ -548,7 +557,7 @@ function HorizontalPropertyCard({
 
           {/* Title */}
           <h3 className="mt-1 font-display text-base font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-            {listing.title}
+            {safeText(listing.title, 'Bien Immobilier')}
           </h3>
 
           {/* Features Specs Bar */}
@@ -617,9 +626,9 @@ function ActiveCard({ listing, onClose }: { listing: Listing; onClose: () => voi
 
       <div className="flex min-w-0 flex-1 flex-col justify-between">
         <div className="min-w-0">
-          <p className="truncate text-xs font-bold text-foreground">{listing.title}</p>
+          <p className="truncate text-xs font-bold text-foreground">{safeText(listing.title, 'Bien Immobilier')}</p>
           <p className="truncate text-[11px] text-muted-foreground mt-0.5">
-            {listing.district}, {listing.city}
+            {safeText(listing.district, 'Centre-Ville')}, {safeText(listing.city, 'Goma')}
           </p>
         </div>
         <div className="flex items-end justify-between gap-2 mt-2">

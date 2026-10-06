@@ -8,15 +8,24 @@ import { BadgeCheck, Bath, BedDouble, Heart, Maximize, MapPin } from 'lucide-rea
 import { formatPrice, type Listing } from '@/lib/properties'
 import { cn, resolveImageUrl } from '@/lib/utils'
 
+function safeStr(val: any, fallback: string = ''): string {
+  if (typeof val === 'string') return val
+  if (val && typeof val === 'object' && typeof val.name === 'string') return val.name
+  return fallback
+}
+
 export function ListingCard({ listing, priority = false }: { listing: Listing; priority?: boolean }) {
   const [saved, setSaved] = useState(false)
+  const titleStr = safeStr(listing.title, 'Bien Immobilier')
+  const cityStr = safeStr(listing.city, 'Goma')
+  const districtStr = safeStr(listing.district, 'Centre-Ville')
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-transform duration-300 ease-out hover:-translate-y-1">
       <div className="relative aspect-[4/3] overflow-hidden">
         <Image
           src={resolveImageUrl(listing.image)}
-          alt={`${listing.title} à ${listing.district}, ${listing.city}`}
+          alt={`${titleStr} à ${districtStr}, ${cityStr}`}
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
           priority={priority}
@@ -53,11 +62,11 @@ export function ListingCard({ listing, priority = false }: { listing: Listing; p
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="truncate text-[15px] font-semibold text-foreground">{listing.title}</h3>
+            <h3 className="truncate text-[15px] font-semibold text-foreground">{titleStr}</h3>
             <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
               <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
               <span className="truncate">
-                {listing.district}, {listing.city}
+                {districtStr}, {cityStr}
               </span>
             </p>
           </div>

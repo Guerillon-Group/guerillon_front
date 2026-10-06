@@ -135,6 +135,45 @@ export function getListing(slug: string): Listing | undefined {
 }
 
 export function apiPropertyToListing(p: any): Listing {
+  if (!p) {
+    return {
+      title: 'Propriété Immobilière',
+      slug: 'propriete',
+      description: '',
+      city: 'Goma',
+      district: 'Centre-Ville',
+      price: 0,
+      image: '/placeholder.svg',
+      gallery: ['/placeholder.svg'],
+      badges: [],
+      features: [],
+      amenities: [],
+      beds: 0,
+      baths: 0,
+      surface: 0,
+      status: 'À louer',
+      type: 'Appartement',
+      verified: false,
+      agent: {
+        name: 'Agent MBIYO',
+        role: 'Agent certifié',
+        avatar: '/images/agent-portrait.png',
+        agency: 'MBIYO Real Estate',
+        responseTime: 'Répond en ~1 h',
+      },
+    }
+  }
+
+  const extractString = (val: any, fallback: string = ''): string => {
+    if (typeof val === 'string') return val
+    if (val && typeof val === 'object') {
+      if (typeof val.name === 'string') return val.name
+      if (typeof val.title === 'string') return val.title
+      if (typeof val.code === 'string') return val.code
+    }
+    return fallback
+  }
+
   const rawCover = p.images?.find((img: any) => img.is_cover)?.url || p.images?.[0]?.url || '/placeholder.svg'
   const coverImage = resolveImageUrl(rawCover)
   const rawGallery = p.images?.map((img: any) => img.url) || [rawCover]
@@ -144,43 +183,48 @@ export function apiPropertyToListing(p: any): Listing {
   const status = transactionType === 'rent' ? 'À louer' : 'À vendre'
   const period = transactionType === 'rent' ? 'mois' : undefined
 
-  const typeName = p.type?.name || p.property_type?.name || 'Appartement'
+  const typeName = extractString(p.type || p.property_type, 'Appartement')
+  const cityName = extractString(p.city_rel || p.city, 'Goma') || 'Goma'
+  const districtName = extractString(p.district || p.neighborhood, 'Centre-Ville') || 'Centre-Ville'
+  const currencyName = extractString(p.currency_rel || p.currency, 'USD') || 'USD'
 
   return {
-    id: p.id,
-    // Ces UUID sont nécessaires lors de la création d'une réservation.
-    // Ne jamais utiliser le nom affiché de l'agent à la place de son identifiant.
+    id: String(p.id || ''),
     ownerId: p.owner_id || p.owner?.id,
     agentId: p.agent_id || p.agent?.id,
-    slug: p.slug || p.id,
-    title: p.title || 'Propriété Immobilière',
-    city: p.city || 'Goma',
-    district: p.district || p.neighborhood || 'Centre-Ville',
-    price: p.price || 0,
-    currency: p.currency || 'USD',
+    slug: String(p.slug || p.id || ''),
+    title: extractString(p.title, 'Propriété Immobilière'),
+    city: cityName,
+    district: districtName,
+    price: Number(p.price) || 0,
+    currency: currencyName,
+    currencyId: p.currency_id ? String(p.currency_id) : undefined,
+    countryId: p.country_id ? String(p.country_id) : undefined,
+    provinceId: p.province_id ? String(p.province_id) : undefined,
+    cityId: p.city_id ? String(p.city_id) : undefined,
     period,
     status,
     type: typeName as PropertyType,
-    beds: p.bedrooms || 0,
-    baths: p.bathrooms || 0,
-    surface: p.surface_area || p.area || 0,
+    beds: Number(p.bedrooms) || 0,
+    baths: Number(p.bathrooms) || 0,
+    surface: Number(p.surface_area || p.area) || 0,
     image: coverImage,
     gallery: gallery.length > 0 ? gallery : [coverImage],
     badges: p.is_featured ? ['Vedette'] : [],
-    verified: p.is_verified ?? false,
+    verified: Boolean(p.is_verified),
     rating: p.rating != null && !isNaN(Number(p.rating)) ? Number(p.rating) : undefined,
     reviews: p.reviews_count ?? p.reviews ?? 0,
-    description: p.description || 'Spacieuse propriété disponible sur MBIYO Real Estate.',
-    features: p.features?.map((f: any) => f.name || f) || [],
-    amenities: p.amenities?.map((a: any) => a.slug || a) || [],
+    description: extractString(p.description, 'Spacieuse propriété disponible sur MBIYO Real Estate.'),
+    features: p.features?.map((f: any) => extractString(f, f)) || [],
+    amenities: p.amenities?.map((a: any) => extractString(a, a)) || [],
     lat: p.latitude ? Number(p.latitude) : (p.lat ? Number(p.lat) : undefined),
     lng: p.longitude ? Number(p.longitude) : (p.lng ? Number(p.lng) : undefined),
     agent: {
-      name: p.agent?.name || p.owner?.name || 'Agent MBIYO',
-      role: p.agent?.role || 'Agent certifié',
+      name: extractString(p.agent?.name || p.owner?.name, 'Agent MBIYO'),
+      role: extractString(p.agent?.role, 'Agent certifié'),
       avatar: resolveImageUrl(p.agent?.avatar || p.owner?.avatar || '/images/agent-portrait.png'),
-      agency: p.agency?.name || 'MBIYO Real Estate',
-      responseTime: p.agent?.response_time || 'Répond en ~1 h',
+      agency: extractString(p.agency?.name, 'MBIYO Real Estate'),
+      responseTime: extractString(p.agent?.response_time, 'Répond en ~1 h'),
     },
   }
 }
