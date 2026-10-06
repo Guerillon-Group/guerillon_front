@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 import { Layers, Loader2, Locate, MapPin, Minus, Navigation, Plus, Search, X } from 'lucide-react'
 
 import { shortPrice, type Listing } from '@/lib/properties'
