@@ -157,6 +157,13 @@ function safeString(val: any, fallback = ''): string {
   return fallback
 }
 
+function getUserInitials(name?: string): string {
+  if (!name || !name.trim()) return 'MB'
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
 export function DashboardView() {
   const { user, initializeAuth } = useAuthStore()
   const [activeRole, setActiveRole] = useState<UserRole>('agent')
@@ -213,7 +220,9 @@ export function DashboardView() {
 
   // User Header Bindings
   const userName = user?.name || current.name
-  const userAvatar = user?.avatar || current.avatar
+  const hasCustomAvatar = Boolean(user?.avatar && !user.avatar.includes('placeholder'))
+  const userAvatarUrl = hasCustomAvatar ? resolveImageUrl(user!.avatar!) : null
+  const userInitials = getUserInitials(userName)
   const userSubtitle = user?.email
     ? `${user.email}${user.phone ? ` • ${user.phone}` : ''}`
     : current.subtitle
@@ -262,14 +271,20 @@ export function DashboardView() {
         {/* En-tête sobre avec profil & sélecteur de mode */}
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
-            <div className="relative size-14 overflow-hidden rounded-2xl border border-[#16381e]/15 bg-white p-0.5 shadow-xs">
-              <Image
-                src={userAvatar}
-                alt={userName}
-                width={80}
-                height={80}
-                className="size-full rounded-[14px] object-cover"
-              />
+            <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#16381e]/15 bg-[#16381e] text-white shadow-xs">
+              {userAvatarUrl ? (
+                <Image
+                  src={userAvatarUrl}
+                  alt={userName}
+                  width={80}
+                  height={80}
+                  className="size-full rounded-[14px] object-cover"
+                />
+              ) : (
+                <span className="font-display text-lg font-bold tracking-wider text-[#c5a059]">
+                  {userInitials}
+                </span>
+              )}
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -348,7 +363,7 @@ export function DashboardView() {
           </div>
 
           <div className="ml-auto hidden items-center gap-2 sm:flex">
-            <Button
+            {/* <Button
               nativeButton={false}
               render={<Link href="/publier" />}
               size="sm"
@@ -356,7 +371,7 @@ export function DashboardView() {
             >
               <Plus className="size-3.5" />
               Nouveau Bien
-            </Button>
+            </Button> */}
           </div>
         </div>
 
@@ -796,13 +811,15 @@ export function DashboardView() {
                             ${item.price?.toLocaleString()} {item.transaction_type === 'rent' ? '/mois' : ''}
                           </span>
                           <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setEditingProperty(item)}
-                              className="inline-flex items-center gap-1 rounded-xl bg-[#16381e] px-3 py-1.5 text-xs font-bold text-white transition-opacity hover:opacity-90 cursor-pointer shadow-xs"
-                            >
-                              <Edit3 className="size-3.5" /> Gérer
-                            </button>
+                            {activeRole === 'proprietaire' && (
+                              <button
+                                type="button"
+                                onClick={() => setEditingProperty(item)}
+                                className="inline-flex items-center gap-1 rounded-xl bg-[#16381e] px-3 py-1.5 text-xs font-bold text-white transition-opacity hover:opacity-90 cursor-pointer shadow-xs"
+                              >
+                                <Edit3 className="size-3.5" /> Gérer
+                              </button>
+                            )}
                             <Link
                               href={`/biens/${item.slug || item.id}`}
                               className="inline-flex items-center gap-1 text-xs font-bold text-[#16381e] hover:underline"
@@ -871,12 +888,14 @@ export function DashboardView() {
         )}
       </main>
 
-      <EditPropertyModal
-        property={editingProperty}
-        isOpen={!!editingProperty}
-        onClose={() => setEditingProperty(null)}
-        onSaved={loadUserProperties}
-      />
+      {activeRole === 'proprietaire' && (
+        <EditPropertyModal
+          property={editingProperty}
+          isOpen={!!editingProperty}
+          onClose={() => setEditingProperty(null)}
+          onSaved={loadUserProperties}
+        />
+      )}
 
       <SiteFooter />
     </div>

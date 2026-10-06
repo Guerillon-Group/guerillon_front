@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ArrowRight, BadgeCheck, FileCheck2, Handshake, MapPin, ShieldCheck } from 'lucide-react'
 
 import { BrowseTabs } from '@/components/home/browse-tabs'
+import { CityGroupSection } from '@/components/home/city-group-section'
 import { CompactCard } from '@/components/home/compact-card'
 import { HeroSearch } from '@/components/home/hero-search'
 import { Reveal } from '@/components/reveal'
@@ -63,7 +64,7 @@ export default async function HomePage() {
                     L&apos;appartement qui vous attend est déjà ici.
                   </h1>
                   <p className="mt-6 max-w-md text-[15px] leading-relaxed text-emerald-50/76 sm:text-base">
-                    Explorez des appartements vérifiés à Goma, Bukavu et Kinshasa. Choisissez votre quartier, vos dates et votre prochain chez-vous.
+                    Explorez des appartements vérifiés à Goma, Bukavu, Kinshasa et Lubumbashi. Choisissez votre ville et votre prochain chez-vous.
                   </p>
                 </div>
 
@@ -100,8 +101,11 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Onglets + rail principal */}
+        {/* Sous-groupes de biens par type et par ville */}
         <BrowseTabs />
+
+        {/* Section sous-groupes des Villes Phares */}
+        <CityGroupSection />
 
         {/* Biens vedettes */}
         {featured.length > 0 && (
@@ -127,8 +131,8 @@ export default async function HomePage() {
             <div className="grid lg:grid-cols-[1fr_1.1fr]">
               <div className="group relative min-h-[240px] overflow-hidden">
                 <Image
-                src="/images/salon-interieur.png"
-                alt="Salon lumineux d'un appartement à louer"
+                  src="/images/salon-interieur.png"
+                  alt="Salon lumineux d'un appartement à louer"
                   fill
                   sizes="(max-width: 1024px) 100vw, 45vw"
                   className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
