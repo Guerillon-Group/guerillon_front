@@ -9,6 +9,8 @@ export type PhotoDraft = {
 
 export type Draft = {
   type: Listing['type']
+  property_type_id?: string
+  property_category_id?: string
   status: Listing['status']
   country_id?: number
   province_id?: number
@@ -16,6 +18,7 @@ export type Draft = {
   city: string
   district: string
   address: string
+  postal_code?: string
   currency_id?: number
   currency: string
   lat: number
@@ -25,6 +28,9 @@ export type Draft = {
   surface: string
   beds: string
   baths: string
+  living_rooms?: string
+  kitchens?: string
+  garages?: string
   description: string
   features: string[]
   photos: PhotoDraft[]
@@ -63,6 +69,8 @@ export const featureOptions = [
 
 export const emptyDraft: Draft = {
   type: 'Appartement',
+  property_type_id: undefined,
+  property_category_id: undefined,
   status: 'À louer',
   country_id: undefined,
   province_id: undefined,
@@ -70,6 +78,7 @@ export const emptyDraft: Draft = {
   city: 'Goma',
   district: '',
   address: '',
+  postal_code: '',
   currency_id: undefined,
   currency: 'USD',
   lat: cityCoords.Goma[0],
@@ -79,6 +88,9 @@ export const emptyDraft: Draft = {
   surface: '',
   beds: '2',
   baths: '1',
+  living_rooms: '1',
+  kitchens: '1',
+  garages: '0',
   description: '',
   features: [],
   photos: [],

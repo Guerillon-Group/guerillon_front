@@ -83,6 +83,7 @@ export default async function HomePage() {
                   alt="Appartement lumineux disponible à la location"
                   fill
                   priority
+                  loading="eager"
                   sizes="(max-width: 1024px) 100vw, 52vw"
                   className="object-cover"
                 />

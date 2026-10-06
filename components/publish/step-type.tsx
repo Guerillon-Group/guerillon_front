@@ -1,11 +1,14 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Building2, Home, Landmark, Mountain, Trees } from 'lucide-react'
 
 import { StepHeading } from '@/components/publish/fields'
 import type { Draft } from '@/components/publish/draft'
 import { cn } from '@/lib/utils'
 import type { Listing } from '@/lib/properties'
+import { propertyService } from '@/services/property.service'
+import type { PropertyCategory, PropertyType as ApiPropertyType } from '@/types/property.types'
 
 const options: { type: Listing['type']; icon: typeof Home; blurb: string }[] = [
   { type: 'Appartement', icon: Building2, blurb: 'Étage dans une résidence' },
@@ -29,6 +32,49 @@ export function StepType({
   draft: Draft
   update: (patch: Partial<Draft>) => void
 }) {
+  const [apiTypes, setApiTypes] = useState<ApiPropertyType[]>([])
+  const [apiCategories, setApiCategories] = useState<PropertyCategory[]>([])
+
+  useEffect(() => {
+    async function loadMetadata() {
+      try {
+        const [typesRes, catRes] = await Promise.all([
+          propertyService.getTypes(),
+          propertyService.getCategories(),
+        ])
+        const loadedTypes = typesRes?.data || []
+        const loadedCategories = catRes?.data || []
+        setApiTypes(loadedTypes)
+        setApiCategories(loadedCategories)
+
+        // Set default type ID if not already set
+        if (loadedTypes.length > 0 && !draft.property_type_id) {
+          const match = loadedTypes.find((t) => t.name.toLowerCase() === draft.type.toLowerCase() || t.slug === draft.type.toLowerCase())
+          if (match) {
+            update({ property_type_id: match.id })
+          } else {
+            update({ property_type_id: loadedTypes[0].id })
+          }
+        }
+        if (loadedCategories.length > 0 && !draft.property_category_id) {
+          update({ property_category_id: loadedCategories[0].id })
+        }
+      } catch (err) {
+        console.warn('Failed to load API property types/categories:', err)
+      }
+    }
+    loadMetadata()
+  }, [])
+
+  const handleSelectType = (selectedType: Listing['type']) => {
+    const match = apiTypes.find(
+      (t) => t.name.toLowerCase() === selectedType.toLowerCase() || t.slug.toLowerCase() === selectedType.toLowerCase(),
+    )
+    update({
+      type: selectedType,
+      property_type_id: match ? match.id : draft.property_type_id,
+    })
+  }
   return (
     <div className="flex flex-col gap-8">
       <StepHeading
@@ -43,7 +89,7 @@ export function StepType({
             <button
               key={type}
               type="button"
-              onClick={() => update({ type })}
+              onClick={() => handleSelectType(type)}
               aria-pressed={selected}
               className={cn(
                 'group flex flex-col items-start gap-3 rounded-2xl border p-5 text-left transition-all duration-200',

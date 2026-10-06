@@ -49,10 +49,10 @@ export function ProtectedRoute({
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="relative flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
               <span className="absolute size-full animate-ping rounded-full bg-primary/20" />
-              <Sparkles className="size-6 text-[#c5a059]" />
+              {/* <Sparkles className="size-6 text-[#c5a059]" /> */}
             </div>
             <p className="text-sm font-medium text-muted-foreground animate-pulse">
-              Vérification de votre session MBIYO...
+              Chargement...
             </p>
           </div>
         </main>

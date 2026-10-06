@@ -30,6 +30,7 @@ export function RailCard({ listing, priority = false }: { listing: Listing; prio
             alt={`${listing.title} à ${listing.district}, ${listing.city}`}
             fill
             priority={priority}
+            loading={priority ? 'eager' : undefined}
             sizes="(max-width: 640px) 78vw, (max-width: 1024px) 44vw, 24vw"
             onLoad={() => setLoaded(true)}
             onError={() => {

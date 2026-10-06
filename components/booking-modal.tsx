@@ -410,24 +410,24 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
                 <p className="mt-1 flex items-center gap-1.5 text-xs text-white/65"><MapPin className="size-3.5" /> {listing.district}, {listing.city}</p>
               </div>
             </div>
-          {variant === 'page' ? (
-            <Link
-              href={`/biens/${listing.slug}`}
-              className="shrink-0 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-white/20"
-            >
-              Retour
-            </Link>
-          ) : (
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Fermer la réservation"
-              className="flex size-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
-            >
-              <X className="size-4" />
-            </button>
-          )}
-        </div>
+            {variant === 'page' ? (
+              <Link
+                href={`/biens/${listing.slug}`}
+                className="shrink-0 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-white/20"
+              >
+                Retour
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Fermer la réservation"
+                className="flex size-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Progression du parcours (Style Stepper Épuré avec Barre de Progression) */}
@@ -491,7 +491,7 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
               <div className="flex items-center gap-3">
                 <Lock className="size-5 text-amber-600 shrink-0" />
                 <div>
-                  <p className="font-bold text-xs uppercase tracking-wider">Connexion requise (Token Sanctum)</p>
+                  <p className="font-bold text-xs uppercase tracking-wider">Connexion requise</p>
                   <p className="text-xs text-muted-foreground mt-0.5">Vous devez être connecté avec un compte client pour effectuer la réservation et le paiement.</p>
                 </div>
               </div>
@@ -668,10 +668,10 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
 
               <div className="relative flex w-full flex-col items-center justify-center overflow-hidden rounded-[28px] border border-[#16381e]/10 bg-[#f6f8f3] p-7">
                 <BookingLottieIcon tone="gold" className="absolute size-40 opacity-15" />
-                <p className="relative text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">Temps restant pour payer</p>
+                {/* <p className="relative text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">Temps restant pour payer</p>
                 <span className="relative mt-2 font-display text-5xl font-extrabold tracking-tight text-[#16381e]">
                   {formatTimer(timeLeft)}
-                </span>
+                </span> */}
                 <p className="relative mt-3 max-w-sm text-xs leading-relaxed text-muted-foreground">
                   Votre logement est retenu. Sans paiement dans ce délai, les dates seront de nouveau disponibles.
                 </p>

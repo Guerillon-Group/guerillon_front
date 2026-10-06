@@ -108,14 +108,26 @@ export interface CreatePropertyPayload {
   description?: string
   property_type_id?: string
   property_category_id?: string
+  agency_id?: string
+  owner_id?: string
+  agent_id?: string
   transaction_type: string
   price: number
   currency?: string
   currency_id?: number
   surface_area?: number
+  area?: number
+  land_area?: number
   bedrooms?: number
   bathrooms?: number
-  rooms?: number
+  living_rooms?: number
+  garages?: number
+  parking?: number
+  kitchens?: number
+  balconies?: number
+  offices?: number
+  floors?: number
+  floor_number?: number
   country_id?: number
   province_id?: number
   city_id?: number
@@ -123,6 +135,9 @@ export interface CreatePropertyPayload {
   city?: string
   neighborhood?: string
   district?: string
+  postal_code?: string
+  latitude?: number
+  longitude?: number
   status?: string
 }
 

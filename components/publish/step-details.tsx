@@ -24,6 +24,14 @@ export function StepDetails({
       const data = await worldService.getCurrencies()
       if (data && data.length > 0) {
         setCurrencies(data)
+        if (!draft.currency_id) {
+          const match = data.find((c) => c.code.toUpperCase() === (draft.currency || 'USD').toUpperCase())
+          if (match) {
+            update({ currency_id: match.id, currency: match.code })
+          } else {
+            update({ currency_id: data[0].id, currency: data[0].code })
+          }
+        }
       }
     }
     loadCurrencies()

@@ -26,6 +26,10 @@ export function StepAddress({
       const data = await worldService.getCountries()
       if (data && data.length > 0) {
         setCountriesList(data)
+        if (!draft.country_id) {
+          const drc = data.find((c) => c.name.toLowerCase().includes('congo') || c.iso2 === 'CD') || data[0]
+          update({ country_id: drc.id })
+        }
       }
     }
     loadCountries()
@@ -36,6 +40,9 @@ export function StepAddress({
       if (draft.country_id) {
         const data = await worldService.getStates(draft.country_id)
         setStatesList(data)
+        if (data.length > 0 && !draft.province_id) {
+          update({ province_id: data[0].id })
+        }
       } else {
         setStatesList([])
       }
@@ -51,6 +58,15 @@ export function StepAddress({
           stateId: draft.province_id,
         })
         setCitiesList(data)
+        if (data.length > 0 && draft.city) {
+          const match = data.find((c) => c.name.toLowerCase() === draft.city.toLowerCase())
+          if (match && !draft.city_id) {
+            update({
+              city_id: match.id,
+              province_id: match.state_id || draft.province_id,
+            })
+          }
+        }
       } else {
         setCitiesList([])
       }
