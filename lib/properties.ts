@@ -190,8 +190,8 @@ export function apiPropertyToListing(p: any): Listing {
 
   return {
     id: String(p.id || ''),
-    ownerId: p.owner_id || p.owner?.id,
-    agentId: p.agent_id || p.agent?.id,
+    ownerId: p.owner_id || p.owner?.id || p.user_id || p.agent_id || p.agent?.id || p.created_by,
+    agentId: p.agent_id || p.agent?.id || p.owner_id || p.owner?.id,
     slug: String(p.slug || p.id || ''),
     title: extractString(p.title, 'Propriété Immobilière'),
     city: cityName,

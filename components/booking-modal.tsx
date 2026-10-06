@@ -248,13 +248,14 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
 
     const bookingRef = `BK-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
     const totalPrice = priceBreakdown ? priceBreakdown.total_price : listing.price
+    const resolvedOwnerId = listing.ownerId || listing.agentId || user?.id
 
     try {
       const res = await bookingService.createBooking({
         booking_reference: bookingRef,
         property_id: listing.id as string,
         client_id: user?.id as string,
-        owner_id: listing.ownerId as string,
+        owner_id: resolvedOwnerId as string,
         check_in_date: checkInDate,
         check_out_date: checkOutDate,
         guest_count: guestCount,
@@ -405,7 +406,7 @@ export function BookingModal({ listing, variant = 'modal', isOpen = true, onClos
                 <Calendar className="relative size-5 text-[#f6d79b]" />
               </div>
               <div>
-                <p className="text-xs font-semibold tracking-[0.16em] text-[#f6d79b] uppercase">Réservation à Goma</p>
+                <p className="text-xs font-semibold tracking-[0.16em] text-[#f6d79b] uppercase">Réservation à {listing.city || 'Goma'}</p>
                 <h3 className="mt-1 font-display text-xl font-bold tracking-tight">Votre séjour, en toute clarté.</h3>
                 <p className="mt-1 flex items-center gap-1.5 text-xs text-white/65"><MapPin className="size-3.5" /> {listing.district}, {listing.city}</p>
               </div>
