@@ -25,9 +25,9 @@ import { BookingLottieIcon } from '@/components/booking-lottie-icon'
 import { Button } from '@/components/ui/button'
 import { formatPrice, type Listing } from '@/lib/properties'
 import { cn } from '@/lib/utils'
-import { bookingService } from '@/services/booking.service'
+import { propertySaleService } from '@/services/property-sale.service'
 import { useAuthStore } from '@/stores/useAuthStore'
-import type { BookingData, PriceBreakdown } from '@/types/booking.types'
+import type { PropertySaleData } from '@/types/property-sale.types'
 
 interface PurchaseModalProps {
   listing: Listing
@@ -84,7 +84,7 @@ export function PurchaseModal({ listing, variant = 'modal', isOpen = true, onClo
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  const [booking, setBooking] = useState<BookingData | null>(null)
+  const [sale, setSale] = useState<PropertySaleData | null>(null)
   const [authModalOpen, setAuthModalOpen] = useState(false)
 
   useEffect(() => {
@@ -93,38 +93,41 @@ export function PurchaseModal({ listing, variant = 'modal', isOpen = true, onClo
       setLoading(false)
       setErrorMessage(null)
       setSuccessMessage(null)
-      setBooking(null)
+      setSale(null)
     }
   }, [isOpen])
 
   if (variant === 'modal' && !isOpen) return null
 
-  // 1. Soumettre l'offre d'achat
+  // 1. Soumettre l'offre d'achat via /api/v1/property-sales
   const handleCreateOffer = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setErrorMessage(null)
 
-    const bookingRef = `ACH-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+    const saleRef = `ACH-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`
     const resolvedOwnerId = listing.ownerId || listing.agentId || user?.id
 
     try {
-      const res = await bookingService.createBooking({
-        booking_reference: bookingRef,
+      const res = await propertySaleService.createSale({
+        sale_reference: saleRef,
         property_id: listing.id as string,
+        buyer_id: user?.id as string,
         client_id: user?.id as string,
+        seller_id: resolvedOwnerId as string,
         owner_id: resolvedOwnerId as string,
-        check_in_date: optionDate,
-        check_out_date: defaultClosingDate,
-        guest_count: 1,
+        offer_price: offerPrice || listing.price,
         total_price: offerPrice || listing.price,
+        option_expiration_date: optionDate,
+        closing_date: defaultClosingDate,
+        conditions: notes || undefined,
       })
 
       if (!res.data || !isUuid(res.data.id)) {
         throw new Error('Le dossier d’achat créé ne contient pas un identifiant valide.')
       }
 
-      setBooking(res.data)
+      setSale(res.data)
       setStep('price')
       setSuccessMessage('Offre d’achat et option de réservation enregistrées avec succès !')
     } catch (err: any) {
@@ -144,9 +147,9 @@ export function PurchaseModal({ listing, variant = 'modal', isOpen = true, onClo
     setStep('pending')
   }
 
-  // 3. Confirmer l'acompte d'option
+  // 3. Confirmer l'acompte d'option via /api/v1/property-sales/{id}/confirm-deposit
   const handleConfirmDeposit = async () => {
-    if (!booking || !isUuid(booking.id)) {
+    if (!sale || !isUuid(sale.id)) {
       setErrorMessage('Dossier d’achat introuvable.')
       return
     }
@@ -154,9 +157,9 @@ export function PurchaseModal({ listing, variant = 'modal', isOpen = true, onClo
     setErrorMessage(null)
 
     try {
-      const res = await bookingService.confirmPayment(booking.id)
+      const res = await propertySaleService.confirmDeposit(sale.id)
       if (!res.data) throw new Error('Aucun retour de confirmation d’option.')
-      setBooking(res.data)
+      setSale(res.data)
       setStep('confirmed')
       setSuccessMessage('Option d’achat confirmée ! Le bien a été retenu et passe en procédure notariée.')
     } catch (err: any) {
@@ -440,6 +443,11 @@ export function PurchaseModal({ listing, variant = 'modal', isOpen = true, onClo
               <p className="max-w-md text-xs leading-relaxed text-muted-foreground">
                 Votre option a été verrouillée avec succès. Notre cabinet notarial partenaire contactera l&apos;acheteur et le vendeur pour la signature finale du Titre Foncier.
               </p>
+              {sale?.sale_reference && (
+                <div className="rounded-xl bg-secondary/50 px-4 py-2 text-xs font-mono font-bold text-foreground">
+                  Référence Dossier : {sale.sale_reference}
+                </div>
+              )}
               <div className="mt-2 rounded-2xl bg-emerald-500/10 p-4 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
                 Statut du bien : Réservé pour Vente (Passe au statut `sold` après notaire).
               </div>
