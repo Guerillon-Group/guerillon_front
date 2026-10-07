@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const listing = await getListingAsync(slug)
-  const isSale = listing?.status === 'À vendre' || listing?.transactionType === 'sale'
+  const isSale = listing?.status === 'À vendre' || listing?.transactionType === 'À vendre'
 
   return {
     title: listing
@@ -28,7 +28,7 @@ export default async function ReservationPage({ params }: { params: Promise<{ sl
 
   if (!listing) notFound()
 
-  const isSale = listing.status === 'À vendre' || listing.transactionType === 'sale'
+  const isSale = listing.status === 'À vendre' || listing.transactionType === 'À vendre'
 
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
